@@ -85,6 +85,7 @@ final class AppModel {
     var bookmarkedScriptureIDs: Set<String> = []
     var readingProgress: [String: Int] = [:]
     var dedicationRecords: [DedicationRecord] = []
+    var stateRevision = 0
 
     private let persistenceKey = "FoJing.AppModel.State.v1"
 
@@ -108,6 +109,10 @@ final class AppModel {
         practiceItems.first { !$0.isComplete }
     }
 
+    var hasSavedDedicationToday: Bool {
+        dedicationRecords.contains { Calendar.current.isDateInToday($0.date) }
+    }
+
     var recentScripture: Scripture {
         scripture(id: readingProgress.keys.first ?? "heart-sutra") ?? scriptures[0]
     }
@@ -126,45 +131,55 @@ final class AppModel {
     }
 
     func toggleBookmark(_ scripture: Scripture) {
+        var bookmarks = bookmarkedScriptureIDs
         if isBookmarked(scripture) {
-            bookmarkedScriptureIDs.remove(scripture.id)
+            bookmarks.remove(scripture.id)
         } else {
-            bookmarkedScriptureIDs.insert(scripture.id)
+            bookmarks.insert(scripture.id)
         }
+        bookmarkedScriptureIDs = bookmarks
         save()
     }
 
     func markPracticeComplete(id: String) {
-        guard let index = practiceItems.firstIndex(where: { $0.id == id }) else { return }
-        practiceItems[index].current = practiceItems[index].target
+        var items = practiceItems
+        guard let index = items.firstIndex(where: { $0.id == id }) else { return }
+        items[index].current = items[index].target
+        practiceItems = items
         save()
     }
 
     func incrementPractice(id: String) {
-        guard let index = practiceItems.firstIndex(where: { $0.id == id }) else { return }
-        practiceItems[index].current = min(practiceItems[index].current + 1, practiceItems[index].target)
+        var items = practiceItems
+        guard let index = items.firstIndex(where: { $0.id == id }) else { return }
+        items[index].current = min(items[index].current + 1, items[index].target)
+        practiceItems = items
         save()
     }
 
     func saveProgress(scripture: Scripture, paragraphIndex: Int) {
-        readingProgress[scripture.id] = paragraphIndex
+        var progress = readingProgress
+        progress[scripture.id] = paragraphIndex
+        readingProgress = progress
         save()
+    }
+
+    func updateReaderSettings(_ settings: ReaderSettings) {
+        readerSettings = settings
     }
 
     func saveDedication(recipient: String, text: String) {
         let completed = practiceItems
             .filter(\.isComplete)
             .map { "\($0.title) \($0.target) \($0.unit)" }
-        dedicationRecords.insert(
-            DedicationRecord(
+        let record = DedicationRecord(
                 id: UUID(),
                 date: Date(),
                 recipient: recipient,
                 text: text,
                 completedItems: completed
-            ),
-            at: 0
         )
+        dedicationRecords = [record] + dedicationRecords
         save()
     }
 
@@ -188,6 +203,7 @@ final class AppModel {
     }
 
     private func save() {
+        stateRevision += 1
         let state = PersistedState(
             practiceItems: practiceItems,
             readerSettings: readerSettings,

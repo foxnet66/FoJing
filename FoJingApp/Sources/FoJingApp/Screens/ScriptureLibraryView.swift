@@ -160,7 +160,8 @@ struct ScriptureDetailView: View {
                     ScriptureReaderView(
                         appModel: appModel,
                         scripture: scripture,
-                        mode: scripture.category == "咒语" ? .chanting : .reading
+                        mode: scripture.category == "咒语" ? .chanting : .reading,
+                        practiceID: nil
                     )
                 } label: {
                     Label("开始阅读", systemImage: "book.pages")

@@ -9,10 +9,12 @@ struct ScriptureReaderView: View {
     @Bindable var appModel: AppModel
     let scripture: Scripture
     let mode: ReaderMode
+    let practiceID: String?
 
     @State private var isPlaying = false
     @State private var showSettings = false
     @State private var activeParagraph = 0
+    @State private var didTapComplete = false
 
     private var title: String {
         scripture.shortTitle
@@ -23,34 +25,37 @@ struct ScriptureReaderView: View {
     }
 
     var body: some View {
-        ScrollView {
-            VStack(alignment: .leading, spacing: 22) {
-                ForEach(Array(paragraphs.enumerated()), id: \.offset) { index, text in
-                    VStack(alignment: .leading, spacing: 8) {
-                        Text(text)
-                            .font(.system(size: appModel.readerSettings.fontSize, weight: .regular, design: .serif))
-                            .lineSpacing(10)
-                            .foregroundStyle(appModel.readerSettings.nightMode ? Color(red: 0.89, green: 0.84, blue: 0.74) : AppTheme.ink)
-                            .padding(.vertical, 4)
-                            .padding(.horizontal, isPlaying && index == activeParagraph ? 10 : 0)
-                            .background(isPlaying && index == activeParagraph ? AppTheme.gold.opacity(0.16) : .clear, in: RoundedRectangle(cornerRadius: 6))
-                            .onAppear {
-                                activeParagraph = index
-                                appModel.saveProgress(scripture: scripture, paragraphIndex: index)
-                            }
+        ZStack {
+            readerBackground.ignoresSafeArea()
+            ScrollView {
+                VStack(alignment: .leading, spacing: 22) {
+                    ForEach(Array(paragraphs.enumerated()), id: \.offset) { index, text in
+                        VStack(alignment: .leading, spacing: 8) {
+                            Text(text)
+                                .font(.system(size: appModel.readerSettings.fontSize, weight: .regular, design: .serif))
+                                .lineSpacing(10)
+                                .foregroundStyle(primaryReaderText)
+                                .padding(.vertical, 4)
+                                .padding(.horizontal, isPlaying && index == activeParagraph ? 10 : 0)
+                                .background(isPlaying && index == activeParagraph ? AppTheme.gold.opacity(0.16) : .clear, in: RoundedRectangle(cornerRadius: 6))
+                                .onAppear {
+                                    activeParagraph = index
+                                    appModel.saveProgress(scripture: scripture, paragraphIndex: index)
+                                }
 
-                        ForEach(scripture.notes.filter { $0.paragraphIndex == index && appModel.readerSettings.showNotes }) { note in
-                            Text("注：\(note.text)")
-                                .font(.footnote)
-                                .lineSpacing(4)
-                                .foregroundStyle(appModel.readerSettings.nightMode ? Color(red: 0.64, green: 0.59, blue: 0.49) : AppTheme.secondaryInk)
+                            ForEach(scripture.notes.filter { $0.paragraphIndex == index && appModel.readerSettings.showNotes }) { note in
+                                Text("注：\(note.text)")
+                                    .font(.footnote)
+                                    .lineSpacing(4)
+                                    .foregroundStyle(secondaryReaderText)
+                            }
                         }
                     }
                 }
+                .padding(.horizontal, 24)
+                .padding(.top, 20)
+                .padding(.bottom, 110)
             }
-            .padding(.horizontal, 24)
-            .padding(.top, 20)
-            .padding(.bottom, 110)
         }
         .safeAreaInset(edge: .bottom) {
             miniPlayer
@@ -73,22 +78,35 @@ struct ScriptureReaderView: View {
         .navigationBarTitleDisplayMode(.inline)
         .sheet(isPresented: $showSettings) {
             ReaderSettingsSheet(
-                fontSize: $appModel.readerSettings.fontSize,
-                useTraditional: $appModel.readerSettings.useTraditional,
-                showNotes: $appModel.readerSettings.showNotes,
-                autoScroll: $appModel.readerSettings.autoScroll,
-                nightMode: $appModel.readerSettings.nightMode
+                fontSize: readerSettingBinding(\.fontSize),
+                useTraditional: readerSettingBinding(\.useTraditional),
+                showNotes: readerSettingBinding(\.showNotes),
+                autoScroll: readerSettingBinding(\.autoScroll),
+                nightMode: readerSettingBinding(\.nightMode)
             )
             .presentationDetents([.medium])
         }
-        .background {
+        .toolbarBackground(appModel.readerSettings.nightMode ? Color(red: 0.08, green: 0.075, blue: 0.065) : AppTheme.paper, for: .navigationBar)
+        .toolbarColorScheme(appModel.readerSettings.nightMode ? .dark : .light, for: .navigationBar)
+        .foregroundStyle(primaryReaderText)
+    }
+
+    private var readerBackground: some View {
+        Group {
             if appModel.readerSettings.nightMode {
-                Color(red: 0.08, green: 0.075, blue: 0.065).ignoresSafeArea()
+                Color(red: 0.08, green: 0.075, blue: 0.065)
             } else {
-                AppTheme.pageGradient.ignoresSafeArea()
+                AppTheme.pageGradient
             }
         }
-        .foregroundStyle(appModel.readerSettings.nightMode ? Color(red: 0.89, green: 0.84, blue: 0.74) : AppTheme.ink)
+    }
+
+    private var primaryReaderText: Color {
+        appModel.readerSettings.nightMode ? Color(red: 0.89, green: 0.84, blue: 0.74) : AppTheme.ink
+    }
+
+    private var secondaryReaderText: Color {
+        appModel.readerSettings.nightMode ? Color(red: 0.64, green: 0.59, blue: 0.49) : AppTheme.secondaryInk
     }
 
     private var miniPlayer: some View {
@@ -108,25 +126,29 @@ struct ScriptureReaderView: View {
                     .font(.subheadline.weight(.medium))
                 Text(appModel.readerSettings.autoScroll ? "自动滚动开启" : "手动阅读")
                     .font(.caption)
-                    .foregroundStyle(AppTheme.secondaryInk)
+                    .foregroundStyle(secondaryReaderText)
             }
             Spacer()
-            Button {
-                completeLinkedPractice()
-            } label: {
-                Label("完成", systemImage: "checkmark.circle")
-                    .font(.subheadline.weight(.medium))
-                    .foregroundStyle(AppTheme.bamboo)
+            if linkedPractice != nil {
+                Button {
+                    completeLinkedPractice()
+                } label: {
+                    Label(isLinkedPracticeComplete ? "已完成" : "完成", systemImage: isLinkedPracticeComplete ? "checkmark.circle.fill" : "checkmark.circle")
+                        .font(.subheadline.weight(.medium))
+                        .foregroundStyle(isLinkedPracticeComplete ? AppTheme.secondaryInk : AppTheme.bamboo)
+                }
+                .disabled(isLinkedPracticeComplete)
             }
         }
         .padding(.horizontal, 18)
         .padding(.vertical, 12)
-        .background(.thinMaterial)
+        .background(appModel.readerSettings.nightMode ? .regularMaterial : .thinMaterial)
         .overlay(alignment: .top) {
             Rectangle()
-                .fill(AppTheme.paperDeep)
+                .fill(appModel.readerSettings.nightMode ? Color.white.opacity(0.12) : AppTheme.paperDeep)
                 .frame(height: 1)
         }
+        .sensoryFeedback(.success, trigger: didTapComplete)
     }
 }
 
@@ -165,9 +187,30 @@ struct ReaderSettingsSheet: View {
 }
 
 private extension ScriptureReaderView {
+    var isLinkedPracticeComplete: Bool {
+        guard let item = linkedPractice else { return false }
+        return item.isComplete
+    }
+
+    var linkedPractice: PracticeItem? {
+        guard let practiceID else { return nil }
+        return appModel.practiceItems.first { $0.id == practiceID }
+    }
+
+    func readerSettingBinding<Value>(_ keyPath: WritableKeyPath<ReaderSettings, Value>) -> Binding<Value> {
+        Binding {
+            appModel.readerSettings[keyPath: keyPath]
+        } set: { newValue in
+            var settings = appModel.readerSettings
+            settings[keyPath: keyPath] = newValue
+            appModel.updateReaderSettings(settings)
+        }
+    }
+
     func completeLinkedPractice() {
-        guard let item = appModel.practiceItems.first(where: { $0.scriptureID == scripture.id && $0.kind == mode.practiceKind }) else { return }
+        guard let item = linkedPractice, !item.isComplete else { return }
         appModel.markPracticeComplete(id: item.id)
+        didTapComplete.toggle()
         isPlaying = false
     }
 }
@@ -185,6 +228,6 @@ private extension ReaderMode {
 
 #Preview {
     NavigationStack {
-        ScriptureReaderView(appModel: AppModel(), scripture: ScriptureCatalog.scriptures[0], mode: .reading)
+        ScriptureReaderView(appModel: AppModel(), scripture: ScriptureCatalog.scriptures[0], mode: .reading, practiceID: nil)
     }
 }

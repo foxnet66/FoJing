@@ -24,6 +24,7 @@ struct ProfileView: View {
                 .padding(.vertical, 4)
             }
         }
+        .id(appModel.stateRevision)
         .scrollContentBackground(.hidden)
         .navigationTitle("我的")
         .sutraPageBackground()

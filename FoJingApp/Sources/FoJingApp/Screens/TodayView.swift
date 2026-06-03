@@ -38,7 +38,7 @@ struct TodayView: View {
                     Text(appModel.firstIncompletePractice == nil ? "今日功课已圆满" : "愿以清净心")
                         .font(.title.weight(.semibold))
                         .foregroundStyle(AppTheme.ink)
-                    Text(appModel.firstIncompletePractice == nil ? "可以进入回向，保存今日记录。" : "安住当下，完成今日功课。")
+                    Text(headerSubtitle)
                         .font(.subheadline)
                         .foregroundStyle(AppTheme.secondaryInk)
                 }
@@ -143,7 +143,8 @@ struct TodayView: View {
                     ScriptureReaderView(
                         appModel: appModel,
                         scripture: scripture,
-                        mode: practice.kind == .chanting ? .chanting : .reading
+                        mode: practice.kind == .chanting ? .chanting : .reading,
+                        practiceID: practice.id
                     )
                 } label: {
                     primaryActionLabel("开始今日功课", systemImage: "play.fill")
@@ -151,12 +152,17 @@ struct TodayView: View {
                 .buttonStyle(.plain)
             }
         } else {
-            NavigationLink {
-                DedicationView(appModel: appModel)
-            } label: {
-                primaryActionLabel("进入回向", systemImage: "arrow.right.circle")
+            if appModel.hasSavedDedicationToday {
+                primaryActionLabel("今日记录已保存", systemImage: "checkmark.seal.fill")
+                    .opacity(0.78)
+            } else {
+                NavigationLink {
+                    DedicationView(appModel: appModel)
+                } label: {
+                    primaryActionLabel("进入回向", systemImage: "arrow.right.circle")
+                }
+                .buttonStyle(.plain)
             }
-            .buttonStyle(.plain)
         }
     }
 
@@ -181,10 +187,20 @@ struct TodayView: View {
         }
     }
 
+    private var headerSubtitle: String {
+        if appModel.firstIncompletePractice != nil {
+            return "安住当下，完成今日功课。"
+        }
+        if appModel.hasSavedDedicationToday {
+            return "回向已保存，可在我的页面查看记录。"
+        }
+        return "可以进入回向，保存今日记录。"
+    }
+
     private var recentReading: some View {
         PaperCard {
             NavigationLink {
-                ScriptureReaderView(appModel: appModel, scripture: appModel.recentScripture, mode: .reading)
+                ScriptureReaderView(appModel: appModel, scripture: appModel.recentScripture, mode: .reading, practiceID: nil)
             } label: {
                 HStack(spacing: 12) {
                     Image(systemName: "book.pages")
