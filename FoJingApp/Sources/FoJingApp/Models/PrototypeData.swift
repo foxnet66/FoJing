@@ -21,7 +21,7 @@ enum PracticeKind: String, Hashable, Codable {
     case counter
 }
 
-struct Scripture: Identifiable, Hashable {
+struct Scripture: Identifiable, Hashable, Codable {
     let id: String
     let title: String
     let shortTitle: String
@@ -47,13 +47,13 @@ struct Scripture: Identifiable, Hashable {
     }
 }
 
-struct ScriptureChapter: Identifiable, Hashable {
+struct ScriptureChapter: Identifiable, Hashable, Codable {
     let id: String
     let title: String
     let paragraphStart: Int
 }
 
-struct ScriptureNote: Identifiable, Hashable {
+struct ScriptureNote: Identifiable, Hashable, Codable {
     let id: String
     let paragraphIndex: Int
     let text: String
@@ -65,6 +65,28 @@ struct ReaderSettings: Hashable, Codable {
     var showNotes = true
     var autoScroll = true
     var nightMode = false
+    var showPinyin = false
+
+    enum CodingKeys: String, CodingKey {
+        case fontSize
+        case useTraditional
+        case showNotes
+        case autoScroll
+        case nightMode
+        case showPinyin
+    }
+
+    init() {}
+
+    init(from decoder: Decoder) throws {
+        let container = try decoder.container(keyedBy: CodingKeys.self)
+        fontSize = try container.decodeIfPresent(Double.self, forKey: .fontSize) ?? 22.0
+        useTraditional = try container.decodeIfPresent(Bool.self, forKey: .useTraditional) ?? false
+        showNotes = try container.decodeIfPresent(Bool.self, forKey: .showNotes) ?? true
+        autoScroll = try container.decodeIfPresent(Bool.self, forKey: .autoScroll) ?? true
+        nightMode = try container.decodeIfPresent(Bool.self, forKey: .nightMode) ?? false
+        showPinyin = try container.decodeIfPresent(Bool.self, forKey: .showPinyin) ?? false
+    }
 }
 
 struct DedicationRecord: Identifiable, Hashable, Codable {
@@ -88,11 +110,17 @@ final class AppModel {
     var stateRevision = 0
 
     private let persistenceKey = "FoJing.AppModel.State.v1"
+    private var practiceDateKey = ""
 
     init() {
         load()
+        if practiceDateKey != Self.todayPracticeKey {
+            practiceItems = ScriptureCatalog.defaultPractices
+            practiceDateKey = Self.todayPracticeKey
+        }
         if practiceItems.isEmpty {
             practiceItems = ScriptureCatalog.defaultPractices
+            practiceDateKey = Self.todayPracticeKey
         }
     }
 
@@ -185,6 +213,7 @@ final class AppModel {
 
     func resetTodayPractice() {
         practiceItems = ScriptureCatalog.defaultPractices
+        practiceDateKey = Self.todayPracticeKey
         save()
     }
 
@@ -197,8 +226,10 @@ final class AppModel {
             bookmarkedScriptureIDs = Set(state.bookmarkedScriptureIDs)
             readingProgress = state.readingProgress
             dedicationRecords = state.dedicationRecords
+            practiceDateKey = state.practiceDateKey ?? Self.todayPracticeKey
         } catch {
             practiceItems = ScriptureCatalog.defaultPractices
+            practiceDateKey = Self.todayPracticeKey
         }
     }
 
@@ -209,10 +240,20 @@ final class AppModel {
             readerSettings: readerSettings,
             bookmarkedScriptureIDs: Array(bookmarkedScriptureIDs),
             readingProgress: readingProgress,
-            dedicationRecords: dedicationRecords
+            dedicationRecords: dedicationRecords,
+            practiceDateKey: practiceDateKey
         )
         guard let data = try? JSONEncoder().encode(state) else { return }
         UserDefaults.standard.set(data, forKey: persistenceKey)
+    }
+
+    private static var todayPracticeKey: String {
+        let formatter = DateFormatter()
+        formatter.calendar = Calendar(identifier: .gregorian)
+        formatter.locale = Locale(identifier: "en_US_POSIX")
+        formatter.timeZone = .current
+        formatter.dateFormat = "yyyy-MM-dd"
+        return formatter.string(from: Date())
     }
 }
 
@@ -222,6 +263,7 @@ private struct PersistedState: Codable {
     let bookmarkedScriptureIDs: [String]
     let readingProgress: [String: Int]
     let dedicationRecords: [DedicationRecord]
+    let practiceDateKey: String?
 }
 
 enum ScriptureCatalog {
@@ -244,7 +286,9 @@ enum ScriptureCatalog {
         universalGate
     ]
 
-    static let heartSutra: Scripture = Scripture(
+    static let heartSutra: Scripture = loadScriptureResource(named: "heart-sutra") ?? fallbackHeartSutra
+
+    private static let fallbackHeartSutra: Scripture = Scripture(
             id: "heart-sutra",
             title: "般若波罗蜜多心经",
             shortTitle: "心经",
@@ -290,7 +334,9 @@ enum ScriptureCatalog {
     static let amitabhaSutra: Scripture = scriptureStub(id: "amitabha-sutra", title: "佛说阿弥陀经", shortTitle: "阿弥陀经", translator: "鸠摩罗什", dynasty: "姚秦", category: "净土", durationMinutes: 12, hasAudio: true)
     static let ksitigarbhaSutra: Scripture = scriptureStub(id: "ksitigarbha-sutra", title: "地藏菩萨本愿经", shortTitle: "地藏经", translator: "实叉难陀", dynasty: "唐", category: "地藏", durationMinutes: 120, hasAudio: false)
 
-    static let greatCompassionMantra: Scripture = Scripture(
+    static let greatCompassionMantra: Scripture = loadScriptureResource(named: "great-compassion-mantra") ?? fallbackGreatCompassionMantra
+
+    private static let fallbackGreatCompassionMantra: Scripture = Scripture(
             id: "great-compassion-mantra",
             title: "大悲咒",
             shortTitle: "大悲咒",
@@ -370,5 +416,19 @@ enum ScriptureCatalog {
                 ScriptureNote(id: "\(id)-note-0", paragraphIndex: 2, text: "该条目已保留元数据，正文仍需替换为可追溯版本。")
             ]
         )
+    }
+
+    private static func loadScriptureResource(named name: String) -> Scripture? {
+        let resourceURL = Bundle.main.url(forResource: name, withExtension: "json", subdirectory: "Scriptures") ??
+            Bundle.main.url(forResource: name, withExtension: "json")
+        guard let url = resourceURL else {
+            return nil
+        }
+        do {
+            let data = try Data(contentsOf: url)
+            return try JSONDecoder().decode(Scripture.self, from: data)
+        } catch {
+            return nil
+        }
     }
 }

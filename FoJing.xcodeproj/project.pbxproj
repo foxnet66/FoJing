@@ -12,21 +12,25 @@
 		60C1584584CB4D248F31BBF5 /* ScriptureLibraryView.swift in Sources */ = {isa = PBXBuildFile; fileRef = B09ABDF773FD35D0FF94425F /* ScriptureLibraryView.swift */; };
 		70CA9F4D8DBC752C4C62F511 /* PrototypeData.swift in Sources */ = {isa = PBXBuildFile; fileRef = 64520B4537344BAAAFDCCAE1 /* PrototypeData.swift */; };
 		74E752429F24D1F72AADFDBF /* ScriptureReaderView.swift in Sources */ = {isa = PBXBuildFile; fileRef = CE91E6EFF016DF3CED76D038 /* ScriptureReaderView.swift */; };
+		852E8E7F9AA0596FDBFBA243 /* heart-sutra.json in Resources */ = {isa = PBXBuildFile; fileRef = A6CDC0C946E312D80A3B97A4 /* heart-sutra.json */; };
 		85B6650C6C00C8785AC365ED /* ChantPracticeView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 89C2286784380140EDE175C4 /* ChantPracticeView.swift */; };
 		8AF74393E26926F4B73761CE /* ProfileView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3778FA52CE72D62569E64800 /* ProfileView.swift */; };
 		ABD81DDF5C859A37148A7904 /* AppTheme.swift in Sources */ = {isa = PBXBuildFile; fileRef = B257948A6DEFE31F29A5B145 /* AppTheme.swift */; };
+		AF94F16B72E3A6F647790141 /* great-compassion-mantra.json in Resources */ = {isa = PBXBuildFile; fileRef = 357683DF9BD46E4AFAF547CB /* great-compassion-mantra.json */; };
 		BA798C7D6487CB86930A3842 /* DedicationView.swift in Sources */ = {isa = PBXBuildFile; fileRef = B976214CD5ED9490A1B69E0A /* DedicationView.swift */; };
 		F5DBD088F643F69B9145B6C9 /* TodayView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2E57CC07CCF62D8B318CB110 /* TodayView.swift */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXFileReference section */
 		2E57CC07CCF62D8B318CB110 /* TodayView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TodayView.swift; sourceTree = "<group>"; };
+		357683DF9BD46E4AFAF547CB /* great-compassion-mantra.json */ = {isa = PBXFileReference; lastKnownFileType = text.json; path = "great-compassion-mantra.json"; sourceTree = "<group>"; };
 		3778FA52CE72D62569E64800 /* ProfileView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ProfileView.swift; sourceTree = "<group>"; };
 		4461FD7A485216B788FC8F8E /* AppShellView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AppShellView.swift; sourceTree = "<group>"; };
-		51532FB937586E7F5CEF6414 /* FoJing.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = FoJing.app; sourceTree = BUILT_PRODUCTS_DIR; };
+		51532FB937586E7F5CEF6414 /* FoJingApp.app */ = {isa = PBXFileReference; includeInIndex = 0; lastKnownFileType = wrapper.application; path = FoJingApp.app; sourceTree = BUILT_PRODUCTS_DIR; };
 		64520B4537344BAAAFDCCAE1 /* PrototypeData.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PrototypeData.swift; sourceTree = "<group>"; };
 		89C2286784380140EDE175C4 /* ChantPracticeView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ChantPracticeView.swift; sourceTree = "<group>"; };
 		9010F2F7BFD56F2E49635CC5 /* FoJingApp.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = FoJingApp.swift; sourceTree = "<group>"; };
+		A6CDC0C946E312D80A3B97A4 /* heart-sutra.json */ = {isa = PBXFileReference; lastKnownFileType = text.json; path = "heart-sutra.json"; sourceTree = "<group>"; };
 		B09ABDF773FD35D0FF94425F /* ScriptureLibraryView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ScriptureLibraryView.swift; sourceTree = "<group>"; };
 		B257948A6DEFE31F29A5B145 /* AppTheme.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AppTheme.swift; sourceTree = "<group>"; };
 		B976214CD5ED9490A1B69E0A /* DedicationView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DedicationView.swift; sourceTree = "<group>"; };
@@ -34,6 +38,24 @@
 /* End PBXFileReference section */
 
 /* Begin PBXGroup section */
+		0B134CE8E6C146A049A53EA3 /* Scriptures */ = {
+			isa = PBXGroup;
+			children = (
+				357683DF9BD46E4AFAF547CB /* great-compassion-mantra.json */,
+				A6CDC0C946E312D80A3B97A4 /* heart-sutra.json */,
+			);
+			path = Scriptures;
+			sourceTree = "<group>";
+		};
+		1B817797854D882054961D3E /* Resources */ = {
+			isa = PBXGroup;
+			children = (
+				0B134CE8E6C146A049A53EA3 /* Scriptures */,
+			);
+			name = Resources;
+			path = FoJingApp/Resources;
+			sourceTree = "<group>";
+		};
 		6EC7B26AB61F98C1F4535358 /* FoJingApp */ = {
 			isa = PBXGroup;
 			children = (
@@ -72,6 +94,7 @@
 			isa = PBXGroup;
 			children = (
 				6EC7B26AB61F98C1F4535358 /* FoJingApp */,
+				1B817797854D882054961D3E /* Resources */,
 				EB7D33D232E84E48956B8612 /* Products */,
 			);
 			sourceTree = "<group>";
@@ -79,7 +102,7 @@
 		EB7D33D232E84E48956B8612 /* Products */ = {
 			isa = PBXGroup;
 			children = (
-				51532FB937586E7F5CEF6414 /* FoJing.app */,
+				51532FB937586E7F5CEF6414 /* FoJingApp.app */,
 			);
 			name = Products;
 			sourceTree = "<group>";
@@ -100,6 +123,7 @@
 			buildConfigurationList = 45D724C1599B33CEF5BBCD8A /* Build configuration list for PBXNativeTarget "FoJingApp" */;
 			buildPhases = (
 				5AEB0F10814D063D2FBC266D /* Sources */,
+				8C68A983ACDA661E2665E6F7 /* Resources */,
 			);
 			buildRules = (
 			);
@@ -109,7 +133,7 @@
 			packageProductDependencies = (
 			);
 			productName = FoJingApp;
-			productReference = 51532FB937586E7F5CEF6414 /* FoJing.app */;
+			productReference = 51532FB937586E7F5CEF6414 /* FoJingApp.app */;
 			productType = "com.apple.product-type.application";
 		};
 /* End PBXNativeTarget section */
@@ -120,6 +144,11 @@
 			attributes = {
 				BuildIndependentTargetsInParallel = YES;
 				LastUpgradeCheck = 1430;
+				TargetAttributes = {
+					6FA24500DA8952E553046B93 = {
+						DevelopmentTeam = "";
+					};
+				};
 			};
 			buildConfigurationList = A44161FA2E011AA98683800A /* Build configuration list for PBXProject "FoJing" */;
 			developmentRegion = en;
@@ -139,6 +168,18 @@
 			);
 		};
 /* End PBXProject section */
+
+/* Begin PBXResourcesBuildPhase section */
+		8C68A983ACDA661E2665E6F7 /* Resources */ = {
+			isa = PBXResourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				AF94F16B72E3A6F647790141 /* great-compassion-mantra.json in Resources */,
+				852E8E7F9AA0596FDBFBA243 /* heart-sutra.json in Resources */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+/* End PBXResourcesBuildPhase section */
 
 /* Begin PBXSourcesBuildPhase section */
 		5AEB0F10814D063D2FBC266D /* Sources */ = {
@@ -230,7 +271,6 @@
 			buildSettings = {
 				ASSETCATALOG_COMPILER_APPICON_NAME = "";
 				CODE_SIGN_IDENTITY = "iPhone Developer";
-				DEVELOPMENT_TEAM = 468SHW5TLW;
 				GENERATE_INFOPLIST_FILE = YES;
 				INFOPLIST_KEY_CFBundleDisplayName = "佛经";
 				INFOPLIST_KEY_UIApplicationSceneManifest_Generation = YES;
@@ -309,7 +349,6 @@
 			buildSettings = {
 				ASSETCATALOG_COMPILER_APPICON_NAME = "";
 				CODE_SIGN_IDENTITY = "iPhone Developer";
-				DEVELOPMENT_TEAM = 468SHW5TLW;
 				GENERATE_INFOPLIST_FILE = YES;
 				INFOPLIST_KEY_CFBundleDisplayName = "佛经";
 				INFOPLIST_KEY_UIApplicationSceneManifest_Generation = YES;

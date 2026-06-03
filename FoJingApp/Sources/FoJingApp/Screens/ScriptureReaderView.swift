@@ -1,3 +1,4 @@
+import Foundation
 import SwiftUI
 
 enum ReaderMode {
@@ -43,6 +44,14 @@ struct ScriptureReaderView: View {
                                     appModel.saveProgress(scripture: scripture, paragraphIndex: index)
                                 }
 
+                            if appModel.readerSettings.showPinyin {
+                                Text(pinyinText(for: text))
+                                    .font(.system(size: max(13, appModel.readerSettings.fontSize * 0.55), weight: .regular, design: .rounded))
+                                    .lineSpacing(5)
+                                    .foregroundStyle(secondaryReaderText)
+                                    .textSelection(.enabled)
+                            }
+
                             ForEach(scripture.notes.filter { $0.paragraphIndex == index && appModel.readerSettings.showNotes }) { note in
                                 Text("注：\(note.text)")
                                     .font(.footnote)
@@ -54,7 +63,7 @@ struct ScriptureReaderView: View {
                 }
                 .padding(.horizontal, 24)
                 .padding(.top, 20)
-                .padding(.bottom, 110)
+                .padding(.bottom, appModel.readerSettings.showPinyin ? 180 : 130)
             }
         }
         .safeAreaInset(edge: .bottom) {
@@ -82,7 +91,8 @@ struct ScriptureReaderView: View {
                 useTraditional: readerSettingBinding(\.useTraditional),
                 showNotes: readerSettingBinding(\.showNotes),
                 autoScroll: readerSettingBinding(\.autoScroll),
-                nightMode: readerSettingBinding(\.nightMode)
+                nightMode: readerSettingBinding(\.nightMode),
+                showPinyin: readerSettingBinding(\.showPinyin)
             )
             .presentationDetents([.medium])
         }
@@ -158,6 +168,7 @@ struct ReaderSettingsSheet: View {
     @Binding var showNotes: Bool
     @Binding var autoScroll: Bool
     @Binding var nightMode: Bool
+    @Binding var showPinyin: Bool
 
     var body: some View {
         NavigationStack {
@@ -175,6 +186,7 @@ struct ReaderSettingsSheet: View {
                     .pickerStyle(.segmented)
                 }
                 Section("显示") {
+                    Toggle("拼音", isOn: $showPinyin)
                     Toggle("注释", isOn: $showNotes)
                     Toggle("自动滚动", isOn: $autoScroll)
                     Toggle("夜间模式", isOn: $nightMode)
@@ -213,6 +225,62 @@ private extension ScriptureReaderView {
         didTapComplete.toggle()
         isPlaying = false
     }
+
+    func pinyinText(for text: String) -> String {
+        var output = ""
+        var index = text.startIndex
+
+        while index < text.endIndex {
+            if let override = buddhistPinyinOverrides.first(where: { text[index...].hasPrefix($0.text) }) {
+                appendPinyinToken(override.pinyin, to: &output)
+                text.formIndex(&index, offsetBy: override.text.count)
+                continue
+            }
+
+            let character = String(text[index])
+            if character.rangeOfCharacter(from: .letters) != nil {
+                appendPinyinToken(transformedPinyin(for: character), to: &output)
+            } else if character.rangeOfCharacter(from: .punctuationCharacters) != nil {
+                appendPunctuation(character, to: &output)
+            } else if character.rangeOfCharacter(from: .whitespacesAndNewlines) != nil {
+                appendSpace(to: &output)
+            } else {
+                appendPinyinToken(character, to: &output)
+            }
+            text.formIndex(after: &index)
+        }
+
+        return output.trimmingCharacters(in: .whitespacesAndNewlines)
+    }
+
+    func transformedPinyin(for text: String) -> String {
+        let mutable = NSMutableString(string: text)
+        CFStringTransform(mutable as CFMutableString, nil, kCFStringTransformToLatin, false)
+        return (mutable as String)
+            .lowercased()
+            .trimmingCharacters(in: .whitespacesAndNewlines)
+    }
+
+    func appendPinyinToken(_ token: String, to output: inout String) {
+        let trimmed = token.trimmingCharacters(in: .whitespacesAndNewlines)
+        guard !trimmed.isEmpty else { return }
+        if !output.isEmpty, !output.hasSuffix(" ") {
+            output += " "
+        }
+        output += trimmed
+    }
+
+    func appendPunctuation(_ punctuation: String, to output: inout String) {
+        output = output.trimmingCharacters(in: .whitespaces)
+        output += punctuation
+        output += " "
+    }
+
+    func appendSpace(to output: inout String) {
+        if !output.isEmpty, !output.hasSuffix(" ") {
+            output += " "
+        }
+    }
 }
 
 private extension ReaderMode {
@@ -225,6 +293,20 @@ private extension ReaderMode {
         }
     }
 }
+
+private let buddhistPinyinOverrides: [(text: String, pinyin: String)] = [
+    ("南無", "na mo"),
+    ("南无", "na mo"),
+    ("般若", "bo re"),
+    ("阿彌陀", "a mi tuo"),
+    ("阿弥陀", "a mi tuo"),
+    ("伽梵達摩", "qie fan da mo"),
+    ("伽梵达摩", "qie fan da mo"),
+    ("菩提薩埵", "pu ti sa duo"),
+    ("菩提萨埵", "pu ti sa duo"),
+    ("罣礙", "gua ai"),
+    ("挂碍", "gua ai")
+]
 
 #Preview {
     NavigationStack {
