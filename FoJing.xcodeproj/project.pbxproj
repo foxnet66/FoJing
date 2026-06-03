@@ -1,0 +1,356 @@
+// !$*UTF8*$!
+{
+	archiveVersion = 1;
+	classes = {
+	};
+	objectVersion = 77;
+	objects = {
+
+/* Begin PBXBuildFile section */
+		29E445BB9ED2069B8DED10E5 /* AppShellView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 4461FD7A485216B788FC8F8E /* AppShellView.swift */; };
+		47C5878C713F2DC770B49969 /* FoJingApp.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9010F2F7BFD56F2E49635CC5 /* FoJingApp.swift */; };
+		60C1584584CB4D248F31BBF5 /* ScriptureLibraryView.swift in Sources */ = {isa = PBXBuildFile; fileRef = B09ABDF773FD35D0FF94425F /* ScriptureLibraryView.swift */; };
+		70CA9F4D8DBC752C4C62F511 /* PrototypeData.swift in Sources */ = {isa = PBXBuildFile; fileRef = 64520B4537344BAAAFDCCAE1 /* PrototypeData.swift */; };
+		74E752429F24D1F72AADFDBF /* ScriptureReaderView.swift in Sources */ = {isa = PBXBuildFile; fileRef = CE91E6EFF016DF3CED76D038 /* ScriptureReaderView.swift */; };
+		85B6650C6C00C8785AC365ED /* ChantPracticeView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 89C2286784380140EDE175C4 /* ChantPracticeView.swift */; };
+		8AF74393E26926F4B73761CE /* ProfileView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3778FA52CE72D62569E64800 /* ProfileView.swift */; };
+		ABD81DDF5C859A37148A7904 /* AppTheme.swift in Sources */ = {isa = PBXBuildFile; fileRef = B257948A6DEFE31F29A5B145 /* AppTheme.swift */; };
+		BA798C7D6487CB86930A3842 /* DedicationView.swift in Sources */ = {isa = PBXBuildFile; fileRef = B976214CD5ED9490A1B69E0A /* DedicationView.swift */; };
+		F5DBD088F643F69B9145B6C9 /* TodayView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2E57CC07CCF62D8B318CB110 /* TodayView.swift */; };
+/* End PBXBuildFile section */
+
+/* Begin PBXFileReference section */
+		2E57CC07CCF62D8B318CB110 /* TodayView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TodayView.swift; sourceTree = "<group>"; };
+		3778FA52CE72D62569E64800 /* ProfileView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ProfileView.swift; sourceTree = "<group>"; };
+		4461FD7A485216B788FC8F8E /* AppShellView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AppShellView.swift; sourceTree = "<group>"; };
+		51532FB937586E7F5CEF6414 /* FoJingApp.app */ = {isa = PBXFileReference; includeInIndex = 0; lastKnownFileType = wrapper.application; path = FoJingApp.app; sourceTree = BUILT_PRODUCTS_DIR; };
+		64520B4537344BAAAFDCCAE1 /* PrototypeData.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PrototypeData.swift; sourceTree = "<group>"; };
+		89C2286784380140EDE175C4 /* ChantPracticeView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ChantPracticeView.swift; sourceTree = "<group>"; };
+		9010F2F7BFD56F2E49635CC5 /* FoJingApp.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = FoJingApp.swift; sourceTree = "<group>"; };
+		B09ABDF773FD35D0FF94425F /* ScriptureLibraryView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ScriptureLibraryView.swift; sourceTree = "<group>"; };
+		B257948A6DEFE31F29A5B145 /* AppTheme.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AppTheme.swift; sourceTree = "<group>"; };
+		B976214CD5ED9490A1B69E0A /* DedicationView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DedicationView.swift; sourceTree = "<group>"; };
+		CE91E6EFF016DF3CED76D038 /* ScriptureReaderView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ScriptureReaderView.swift; sourceTree = "<group>"; };
+/* End PBXFileReference section */
+
+/* Begin PBXGroup section */
+		6EC7B26AB61F98C1F4535358 /* FoJingApp */ = {
+			isa = PBXGroup;
+			children = (
+				4461FD7A485216B788FC8F8E /* AppShellView.swift */,
+				9010F2F7BFD56F2E49635CC5 /* FoJingApp.swift */,
+				F19F81B3F772DC4A08B9334C /* Models */,
+				BF4A4EB31D28BD7E6D9D4009 /* Screens */,
+				7B92A5240F9FCE2671F5D046 /* Shared */,
+			);
+			name = FoJingApp;
+			path = FoJingApp/Sources/FoJingApp;
+			sourceTree = "<group>";
+		};
+		7B92A5240F9FCE2671F5D046 /* Shared */ = {
+			isa = PBXGroup;
+			children = (
+				B257948A6DEFE31F29A5B145 /* AppTheme.swift */,
+			);
+			path = Shared;
+			sourceTree = "<group>";
+		};
+		BF4A4EB31D28BD7E6D9D4009 /* Screens */ = {
+			isa = PBXGroup;
+			children = (
+				89C2286784380140EDE175C4 /* ChantPracticeView.swift */,
+				B976214CD5ED9490A1B69E0A /* DedicationView.swift */,
+				3778FA52CE72D62569E64800 /* ProfileView.swift */,
+				B09ABDF773FD35D0FF94425F /* ScriptureLibraryView.swift */,
+				CE91E6EFF016DF3CED76D038 /* ScriptureReaderView.swift */,
+				2E57CC07CCF62D8B318CB110 /* TodayView.swift */,
+			);
+			path = Screens;
+			sourceTree = "<group>";
+		};
+		E414DFB4B74CA378A2738178 = {
+			isa = PBXGroup;
+			children = (
+				6EC7B26AB61F98C1F4535358 /* FoJingApp */,
+				EB7D33D232E84E48956B8612 /* Products */,
+			);
+			sourceTree = "<group>";
+		};
+		EB7D33D232E84E48956B8612 /* Products */ = {
+			isa = PBXGroup;
+			children = (
+				51532FB937586E7F5CEF6414 /* FoJingApp.app */,
+			);
+			name = Products;
+			sourceTree = "<group>";
+		};
+		F19F81B3F772DC4A08B9334C /* Models */ = {
+			isa = PBXGroup;
+			children = (
+				64520B4537344BAAAFDCCAE1 /* PrototypeData.swift */,
+			);
+			path = Models;
+			sourceTree = "<group>";
+		};
+/* End PBXGroup section */
+
+/* Begin PBXNativeTarget section */
+		6FA24500DA8952E553046B93 /* FoJingApp */ = {
+			isa = PBXNativeTarget;
+			buildConfigurationList = 45D724C1599B33CEF5BBCD8A /* Build configuration list for PBXNativeTarget "FoJingApp" */;
+			buildPhases = (
+				5AEB0F10814D063D2FBC266D /* Sources */,
+			);
+			buildRules = (
+			);
+			dependencies = (
+			);
+			name = FoJingApp;
+			packageProductDependencies = (
+			);
+			productName = FoJingApp;
+			productReference = 51532FB937586E7F5CEF6414 /* FoJingApp.app */;
+			productType = "com.apple.product-type.application";
+		};
+/* End PBXNativeTarget section */
+
+/* Begin PBXProject section */
+		81C2D3991A5CAA0F6704E228 /* Project object */ = {
+			isa = PBXProject;
+			attributes = {
+				BuildIndependentTargetsInParallel = YES;
+				LastUpgradeCheck = 1430;
+				TargetAttributes = {
+					6FA24500DA8952E553046B93 = {
+						DevelopmentTeam = "";
+					};
+				};
+			};
+			buildConfigurationList = A44161FA2E011AA98683800A /* Build configuration list for PBXProject "FoJing" */;
+			developmentRegion = en;
+			hasScannedForEncodings = 0;
+			knownRegions = (
+				Base,
+				en,
+			);
+			mainGroup = E414DFB4B74CA378A2738178;
+			minimizedProjectReferenceProxies = 1;
+			preferredProjectObjectVersion = 77;
+			productRefGroup = EB7D33D232E84E48956B8612 /* Products */;
+			projectDirPath = "";
+			projectRoot = "";
+			targets = (
+				6FA24500DA8952E553046B93 /* FoJingApp */,
+			);
+		};
+/* End PBXProject section */
+
+/* Begin PBXSourcesBuildPhase section */
+		5AEB0F10814D063D2FBC266D /* Sources */ = {
+			isa = PBXSourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				29E445BB9ED2069B8DED10E5 /* AppShellView.swift in Sources */,
+				ABD81DDF5C859A37148A7904 /* AppTheme.swift in Sources */,
+				85B6650C6C00C8785AC365ED /* ChantPracticeView.swift in Sources */,
+				BA798C7D6487CB86930A3842 /* DedicationView.swift in Sources */,
+				47C5878C713F2DC770B49969 /* FoJingApp.swift in Sources */,
+				8AF74393E26926F4B73761CE /* ProfileView.swift in Sources */,
+				70CA9F4D8DBC752C4C62F511 /* PrototypeData.swift in Sources */,
+				60C1584584CB4D248F31BBF5 /* ScriptureLibraryView.swift in Sources */,
+				74E752429F24D1F72AADFDBF /* ScriptureReaderView.swift in Sources */,
+				F5DBD088F643F69B9145B6C9 /* TodayView.swift in Sources */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+/* End PBXSourcesBuildPhase section */
+
+/* Begin XCBuildConfiguration section */
+		1FC5E99EC69F1BCF8E85B773 /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ALWAYS_SEARCH_USER_PATHS = NO;
+				CLANG_ANALYZER_NONNULL = YES;
+				CLANG_ANALYZER_NUMBER_OBJECT_CONVERSION = YES_AGGRESSIVE;
+				CLANG_CXX_LANGUAGE_STANDARD = "gnu++14";
+				CLANG_CXX_LIBRARY = "libc++";
+				CLANG_ENABLE_MODULES = YES;
+				CLANG_ENABLE_OBJC_ARC = YES;
+				CLANG_ENABLE_OBJC_WEAK = YES;
+				CLANG_WARN_BLOCK_CAPTURE_AUTORELEASING = YES;
+				CLANG_WARN_BOOL_CONVERSION = YES;
+				CLANG_WARN_COMMA = YES;
+				CLANG_WARN_CONSTANT_CONVERSION = YES;
+				CLANG_WARN_DEPRECATED_OBJC_IMPLEMENTATIONS = YES;
+				CLANG_WARN_DIRECT_OBJC_ISA_USAGE = YES_ERROR;
+				CLANG_WARN_DOCUMENTATION_COMMENTS = YES;
+				CLANG_WARN_EMPTY_BODY = YES;
+				CLANG_WARN_ENUM_CONVERSION = YES;
+				CLANG_WARN_INFINITE_RECURSION = YES;
+				CLANG_WARN_INT_CONVERSION = YES;
+				CLANG_WARN_NON_LITERAL_NULL_CONVERSION = YES;
+				CLANG_WARN_OBJC_IMPLICIT_RETAIN_SELF = YES;
+				CLANG_WARN_OBJC_LITERAL_CONVERSION = YES;
+				CLANG_WARN_OBJC_ROOT_CLASS = YES_ERROR;
+				CLANG_WARN_QUOTED_INCLUDE_IN_FRAMEWORK_HEADER = YES;
+				CLANG_WARN_RANGE_LOOP_ANALYSIS = YES;
+				CLANG_WARN_STRICT_PROTOTYPES = YES;
+				CLANG_WARN_SUSPICIOUS_MOVE = YES;
+				CLANG_WARN_UNGUARDED_AVAILABILITY = YES_AGGRESSIVE;
+				CLANG_WARN_UNREACHABLE_CODE = YES;
+				CLANG_WARN__DUPLICATE_METHOD_MATCH = YES;
+				COPY_PHASE_STRIP = NO;
+				DEBUG_INFORMATION_FORMAT = dwarf;
+				DEVELOPMENT_TEAM = "";
+				ENABLE_STRICT_OBJC_MSGSEND = YES;
+				ENABLE_TESTABILITY = YES;
+				GCC_C_LANGUAGE_STANDARD = gnu11;
+				GCC_DYNAMIC_NO_PIC = NO;
+				GCC_NO_COMMON_BLOCKS = YES;
+				GCC_OPTIMIZATION_LEVEL = 0;
+				GCC_PREPROCESSOR_DEFINITIONS = (
+					"$(inherited)",
+					"DEBUG=1",
+				);
+				GCC_WARN_64_TO_32_BIT_CONVERSION = YES;
+				GCC_WARN_ABOUT_RETURN_TYPE = YES_ERROR;
+				GCC_WARN_UNDECLARED_SELECTOR = YES;
+				GCC_WARN_UNINITIALIZED_AUTOS = YES_AGGRESSIVE;
+				GCC_WARN_UNUSED_FUNCTION = YES;
+				GCC_WARN_UNUSED_VARIABLE = YES;
+				IPHONEOS_DEPLOYMENT_TARGET = 17.0;
+				MTL_ENABLE_DEBUG_INFO = INCLUDE_SOURCE;
+				MTL_FAST_MATH = YES;
+				ONLY_ACTIVE_ARCH = YES;
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				SDKROOT = iphoneos;
+				SWIFT_ACTIVE_COMPILATION_CONDITIONS = DEBUG;
+				SWIFT_OPTIMIZATION_LEVEL = "-Onone";
+				SWIFT_VERSION = 5.9;
+			};
+			name = Debug;
+		};
+		32D199DA7CA7B9D656850803 /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ASSETCATALOG_COMPILER_APPICON_NAME = "";
+				CODE_SIGN_IDENTITY = "iPhone Developer";
+				GENERATE_INFOPLIST_FILE = YES;
+				INFOPLIST_KEY_CFBundleDisplayName = "佛经";
+				INFOPLIST_KEY_UIApplicationSceneManifest_Generation = YES;
+				INFOPLIST_KEY_UIApplicationSupportsIndirectInputEvents = YES;
+				INFOPLIST_KEY_UILaunchScreen_Generation = YES;
+				LD_RUNPATH_SEARCH_PATHS = (
+					"$(inherited)",
+					"@executable_path/Frameworks",
+				);
+				PRODUCT_BUNDLE_IDENTIFIER = com.jameswang.fojing;
+				PRODUCT_NAME = FoJing;
+				SDKROOT = iphoneos;
+				TARGETED_DEVICE_FAMILY = "1,2";
+			};
+			name = Debug;
+		};
+		65D490372A1C72554FAC7F7B /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ALWAYS_SEARCH_USER_PATHS = NO;
+				CLANG_ANALYZER_NONNULL = YES;
+				CLANG_ANALYZER_NUMBER_OBJECT_CONVERSION = YES_AGGRESSIVE;
+				CLANG_CXX_LANGUAGE_STANDARD = "gnu++14";
+				CLANG_CXX_LIBRARY = "libc++";
+				CLANG_ENABLE_MODULES = YES;
+				CLANG_ENABLE_OBJC_ARC = YES;
+				CLANG_ENABLE_OBJC_WEAK = YES;
+				CLANG_WARN_BLOCK_CAPTURE_AUTORELEASING = YES;
+				CLANG_WARN_BOOL_CONVERSION = YES;
+				CLANG_WARN_COMMA = YES;
+				CLANG_WARN_CONSTANT_CONVERSION = YES;
+				CLANG_WARN_DEPRECATED_OBJC_IMPLEMENTATIONS = YES;
+				CLANG_WARN_DIRECT_OBJC_ISA_USAGE = YES_ERROR;
+				CLANG_WARN_DOCUMENTATION_COMMENTS = YES;
+				CLANG_WARN_EMPTY_BODY = YES;
+				CLANG_WARN_ENUM_CONVERSION = YES;
+				CLANG_WARN_INFINITE_RECURSION = YES;
+				CLANG_WARN_INT_CONVERSION = YES;
+				CLANG_WARN_NON_LITERAL_NULL_CONVERSION = YES;
+				CLANG_WARN_OBJC_IMPLICIT_RETAIN_SELF = YES;
+				CLANG_WARN_OBJC_LITERAL_CONVERSION = YES;
+				CLANG_WARN_OBJC_ROOT_CLASS = YES_ERROR;
+				CLANG_WARN_QUOTED_INCLUDE_IN_FRAMEWORK_HEADER = YES;
+				CLANG_WARN_RANGE_LOOP_ANALYSIS = YES;
+				CLANG_WARN_STRICT_PROTOTYPES = YES;
+				CLANG_WARN_SUSPICIOUS_MOVE = YES;
+				CLANG_WARN_UNGUARDED_AVAILABILITY = YES_AGGRESSIVE;
+				CLANG_WARN_UNREACHABLE_CODE = YES;
+				CLANG_WARN__DUPLICATE_METHOD_MATCH = YES;
+				COPY_PHASE_STRIP = NO;
+				DEBUG_INFORMATION_FORMAT = "dwarf-with-dsym";
+				DEVELOPMENT_TEAM = "";
+				ENABLE_NS_ASSERTIONS = NO;
+				ENABLE_STRICT_OBJC_MSGSEND = YES;
+				GCC_C_LANGUAGE_STANDARD = gnu11;
+				GCC_NO_COMMON_BLOCKS = YES;
+				GCC_WARN_64_TO_32_BIT_CONVERSION = YES;
+				GCC_WARN_ABOUT_RETURN_TYPE = YES_ERROR;
+				GCC_WARN_UNDECLARED_SELECTOR = YES;
+				GCC_WARN_UNINITIALIZED_AUTOS = YES_AGGRESSIVE;
+				GCC_WARN_UNUSED_FUNCTION = YES;
+				GCC_WARN_UNUSED_VARIABLE = YES;
+				IPHONEOS_DEPLOYMENT_TARGET = 17.0;
+				MTL_ENABLE_DEBUG_INFO = NO;
+				MTL_FAST_MATH = YES;
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				SDKROOT = iphoneos;
+				SWIFT_COMPILATION_MODE = wholemodule;
+				SWIFT_OPTIMIZATION_LEVEL = "-O";
+				SWIFT_VERSION = 5.9;
+			};
+			name = Release;
+		};
+		728160F9A583090D8FF9B6D7 /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ASSETCATALOG_COMPILER_APPICON_NAME = "";
+				CODE_SIGN_IDENTITY = "iPhone Developer";
+				GENERATE_INFOPLIST_FILE = YES;
+				INFOPLIST_KEY_CFBundleDisplayName = "佛经";
+				INFOPLIST_KEY_UIApplicationSceneManifest_Generation = YES;
+				INFOPLIST_KEY_UIApplicationSupportsIndirectInputEvents = YES;
+				INFOPLIST_KEY_UILaunchScreen_Generation = YES;
+				LD_RUNPATH_SEARCH_PATHS = (
+					"$(inherited)",
+					"@executable_path/Frameworks",
+				);
+				PRODUCT_BUNDLE_IDENTIFIER = com.jameswang.fojing;
+				PRODUCT_NAME = FoJing;
+				SDKROOT = iphoneos;
+				TARGETED_DEVICE_FAMILY = "1,2";
+			};
+			name = Release;
+		};
+/* End XCBuildConfiguration section */
+
+/* Begin XCConfigurationList section */
+		45D724C1599B33CEF5BBCD8A /* Build configuration list for PBXNativeTarget "FoJingApp" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				32D199DA7CA7B9D656850803 /* Debug */,
+				728160F9A583090D8FF9B6D7 /* Release */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Debug;
+		};
+		A44161FA2E011AA98683800A /* Build configuration list for PBXProject "FoJing" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				1FC5E99EC69F1BCF8E85B773 /* Debug */,
+				65D490372A1C72554FAC7F7B /* Release */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Debug;
+		};
+/* End XCConfigurationList section */
+	};
+	rootObject = 81C2D3991A5CAA0F6704E228 /* Project object */;
+}
