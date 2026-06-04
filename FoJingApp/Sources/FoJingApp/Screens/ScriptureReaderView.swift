@@ -45,7 +45,7 @@ struct ScriptureReaderView: View {
                                 }
 
                             if appModel.readerSettings.showPinyin {
-                                Text(pinyinText(for: text))
+                                Text(pinyinText(for: text, at: index))
                                     .font(.system(size: max(13, appModel.readerSettings.fontSize * 0.55), weight: .regular, design: .rounded))
                                     .lineSpacing(5)
                                     .foregroundStyle(secondaryReaderText)
@@ -226,7 +226,15 @@ private extension ScriptureReaderView {
         isPlaying = false
     }
 
-    func pinyinText(for text: String) -> String {
+    func pinyinText(for text: String, at paragraphIndex: Int) -> String {
+        if let pinyinParagraphs = scripture.pinyinParagraphs,
+           pinyinParagraphs.indices.contains(paragraphIndex) {
+            let pinyin = pinyinParagraphs[paragraphIndex].trimmingCharacters(in: .whitespacesAndNewlines)
+            if !pinyin.isEmpty {
+                return pinyin
+            }
+        }
+
         var output = ""
         var index = text.startIndex
 

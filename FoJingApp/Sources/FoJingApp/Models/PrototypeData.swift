@@ -36,6 +36,7 @@ struct Scripture: Identifiable, Hashable, Codable {
     let chapters: [ScriptureChapter]
     let simplifiedParagraphs: [String]
     let traditionalParagraphs: [String]
+    var pinyinParagraphs: [String]? = nil
     let notes: [ScriptureNote]
 
     var subtitle: String {
