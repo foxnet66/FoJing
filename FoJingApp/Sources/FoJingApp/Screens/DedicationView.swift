@@ -9,6 +9,10 @@ struct DedicationView: View {
 
     private let recipients = ["法界众生", "家人", "自定义"]
 
+    private var hasSavedToday: Bool {
+        didSave || appModel.hasSavedDedicationToday
+    }
+
     var body: some View {
         ScrollView {
             VStack(alignment: .leading, spacing: 22) {
@@ -60,11 +64,11 @@ struct DedicationView: View {
                     }
                 }
 
-                PrimaryActionButton(title: didSave ? "已保存" : "完成并保存", systemImage: "checkmark.circle.fill") {
+                PrimaryActionButton(title: hasSavedToday ? "已保存" : "完成并保存", systemImage: "checkmark.circle.fill") {
                     appModel.saveDedication(recipient: selectedRecipient, text: dedicationText)
                     didSave = true
                 }
-                .disabled(didSave)
+                .disabled(hasSavedToday)
             }
             .padding(20)
         }
