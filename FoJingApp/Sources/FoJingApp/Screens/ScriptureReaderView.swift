@@ -16,6 +16,9 @@ struct ScriptureReaderView: View {
     @State private var showSettings = false
     @State private var activeParagraph = 0
     @State private var didTapComplete = false
+    @State private var playbackSeconds = 0.0
+
+    private let playbackTimer = Timer.publish(every: 1, on: .main, in: .common).autoconnect()
 
     private var title: String {
         scripture.shortTitle
@@ -28,42 +31,51 @@ struct ScriptureReaderView: View {
     var body: some View {
         ZStack {
             readerBackground.ignoresSafeArea()
-            ScrollView {
-                VStack(alignment: .leading, spacing: 22) {
-                    ForEach(Array(paragraphs.enumerated()), id: \.offset) { index, text in
-                        VStack(alignment: .leading, spacing: 8) {
-                            Text(text)
-                                .font(.system(size: appModel.readerSettings.fontSize, weight: .regular, design: .serif))
-                                .lineSpacing(10)
-                                .foregroundStyle(primaryReaderText)
-                                .padding(.vertical, 4)
-                                .padding(.horizontal, isPlaying && index == activeParagraph ? 10 : 0)
-                                .background(isPlaying && index == activeParagraph ? AppTheme.gold.opacity(0.16) : .clear, in: RoundedRectangle(cornerRadius: 6))
-                                .onAppear {
-                                    activeParagraph = index
-                                    appModel.saveProgress(scripture: scripture, paragraphIndex: index)
+            ScrollViewReader { proxy in
+                ScrollView {
+                    VStack(alignment: .leading, spacing: 22) {
+                        ForEach(Array(paragraphs.enumerated()), id: \.offset) { index, text in
+                            VStack(alignment: .leading, spacing: 8) {
+                                Text(text)
+                                    .font(.system(size: appModel.readerSettings.fontSize, weight: .regular, design: .serif))
+                                    .lineSpacing(10)
+                                    .foregroundStyle(primaryReaderText)
+                                    .padding(.vertical, 4)
+                                    .padding(.horizontal, isPlaying && index == activeParagraph ? 10 : 0)
+                                    .background(isPlaying && index == activeParagraph ? AppTheme.gold.opacity(0.16) : .clear, in: RoundedRectangle(cornerRadius: 6))
+                                    .onAppear {
+                                        activeParagraph = index
+                                        appModel.saveProgress(scripture: scripture, paragraphIndex: index)
+                                    }
+
+                                if appModel.readerSettings.showPinyin {
+                                    Text(pinyinText(for: text, at: index))
+                                        .font(.system(size: max(13, appModel.readerSettings.fontSize * 0.55), weight: .regular, design: .rounded))
+                                        .lineSpacing(5)
+                                        .foregroundStyle(secondaryReaderText)
+                                        .textSelection(.enabled)
                                 }
 
-                            if appModel.readerSettings.showPinyin {
-                                Text(pinyinText(for: text, at: index))
-                                    .font(.system(size: max(13, appModel.readerSettings.fontSize * 0.55), weight: .regular, design: .rounded))
-                                    .lineSpacing(5)
-                                    .foregroundStyle(secondaryReaderText)
-                                    .textSelection(.enabled)
+                                ForEach(scripture.notes.filter { $0.paragraphIndex == index && appModel.readerSettings.showNotes }) { note in
+                                    Text("注：\(note.text)")
+                                        .font(.footnote)
+                                        .lineSpacing(4)
+                                        .foregroundStyle(secondaryReaderText)
+                                }
                             }
-
-                            ForEach(scripture.notes.filter { $0.paragraphIndex == index && appModel.readerSettings.showNotes }) { note in
-                                Text("注：\(note.text)")
-                                    .font(.footnote)
-                                    .lineSpacing(4)
-                                    .foregroundStyle(secondaryReaderText)
-                            }
+                            .id(index)
                         }
                     }
+                    .padding(.horizontal, 24)
+                    .padding(.top, 20)
+                    .padding(.bottom, appModel.readerSettings.showPinyin ? 96 : 72)
                 }
-                .padding(.horizontal, 24)
-                .padding(.top, 20)
-                .padding(.bottom, appModel.readerSettings.showPinyin ? 96 : 72)
+                .onChange(of: activeParagraph) { _, newValue in
+                    guard isPlaying, appModel.readerSettings.autoScroll else { return }
+                    withAnimation(.easeInOut(duration: 0.35)) {
+                        proxy.scrollTo(newValue, anchor: .center)
+                    }
+                }
             }
         }
         .safeAreaInset(edge: .bottom) {
@@ -100,6 +112,9 @@ struct ScriptureReaderView: View {
         .toolbarBackground(appModel.readerSettings.nightMode ? Color(red: 0.08, green: 0.075, blue: 0.065) : AppTheme.paper, for: .navigationBar)
         .toolbarColorScheme(appModel.readerSettings.nightMode ? .dark : .light, for: .navigationBar)
         .foregroundStyle(primaryReaderText)
+        .onReceive(playbackTimer) { _ in
+            advancePlaybackIfNeeded()
+        }
     }
 
     private var readerBackground: some View {
@@ -122,11 +137,11 @@ struct ScriptureReaderView: View {
 
     private var miniPlayer: some View {
         HStack(spacing: 16) {
-            Text(isPlaying ? "00:42" : "00:00")
+            Text("\(formatPlaybackTime(playbackSeconds))/\(formatPlaybackTime(playbackDuration))")
                 .font(.footnote.monospacedDigit())
                 .foregroundStyle(AppTheme.secondaryInk)
             Button {
-                isPlaying.toggle()
+                togglePlayback()
             } label: {
                 Image(systemName: isPlaying ? "pause.circle.fill" : "play.circle.fill")
                     .font(.system(size: 38))
@@ -200,6 +215,14 @@ struct ReaderSettingsSheet: View {
 }
 
 private extension ScriptureReaderView {
+    var playbackDuration: Double {
+        max(Double(scripture.durationMinutes * 60), Double(max(paragraphs.count, 1)) * 4)
+    }
+
+    var secondsPerParagraph: Double {
+        playbackDuration / Double(max(paragraphs.count, 1))
+    }
+
     var isLinkedPracticeComplete: Bool {
         guard let item = linkedPractice else { return false }
         return item.isComplete
@@ -225,6 +248,38 @@ private extension ScriptureReaderView {
         appModel.markPracticeComplete(id: item.id)
         didTapComplete.toggle()
         isPlaying = false
+    }
+
+    func togglePlayback() {
+        if playbackSeconds >= playbackDuration {
+            playbackSeconds = 0
+            activeParagraph = 0
+        }
+        isPlaying.toggle()
+    }
+
+    func advancePlaybackIfNeeded() {
+        guard isPlaying else { return }
+        let nextSecond = min(playbackSeconds + 1, playbackDuration)
+        playbackSeconds = nextSecond
+        activeParagraph = paragraphIndex(at: nextSecond)
+        appModel.saveProgress(scripture: scripture, paragraphIndex: activeParagraph)
+        if nextSecond >= playbackDuration {
+            isPlaying = false
+        }
+    }
+
+    func paragraphIndex(at seconds: Double) -> Int {
+        guard !paragraphs.isEmpty else { return 0 }
+        let index = Int(seconds / secondsPerParagraph)
+        return min(max(index, 0), paragraphs.count - 1)
+    }
+
+    func formatPlaybackTime(_ seconds: Double) -> String {
+        let totalSeconds = max(Int(seconds.rounded()), 0)
+        let minutes = totalSeconds / 60
+        let seconds = totalSeconds % 60
+        return String(format: "%02d:%02d", minutes, seconds)
     }
 
     func pinyinText(for text: String, at paragraphIndex: Int) -> String {
