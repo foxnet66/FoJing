@@ -18,6 +18,7 @@ struct ScriptureReaderView: View {
     @State private var didTapComplete = false
     @State private var playbackSeconds = 0.0
     @State private var loopCurrentParagraph = false
+    @State private var didRestoreProgress = false
 
     private let playbackTimer = Timer.publish(every: 1, on: .main, in: .common).autoconnect()
 
@@ -45,6 +46,7 @@ struct ScriptureReaderView: View {
                                     .padding(.horizontal, isPlaying && index == activeParagraph ? 10 : 0)
                                     .background(isPlaying && index == activeParagraph ? AppTheme.gold.opacity(0.16) : .clear, in: RoundedRectangle(cornerRadius: 6))
                                     .onAppear {
+                                        guard didRestoreProgress else { return }
                                         activeParagraph = index
                                         if loopCurrentParagraph {
                                             playbackSeconds = paragraphStartSeconds(index)
@@ -79,6 +81,9 @@ struct ScriptureReaderView: View {
                     withAnimation(.easeInOut(duration: 0.35)) {
                         proxy.scrollTo(newValue, anchor: .center)
                     }
+                }
+                .onAppear {
+                    restoreReadingProgress(with: proxy)
                 }
             }
         }
@@ -268,6 +273,20 @@ private extension ScriptureReaderView {
         appModel.markPracticeComplete(id: item.id)
         didTapComplete.toggle()
         isPlaying = false
+    }
+
+    func restoreReadingProgress(with proxy: ScrollViewProxy) {
+        guard !didRestoreProgress else { return }
+        didRestoreProgress = true
+        guard !paragraphs.isEmpty else { return }
+        let savedIndex = appModel.readingProgress[scripture.id] ?? 0
+        let index = min(max(savedIndex, 0), paragraphs.count - 1)
+        activeParagraph = index
+        playbackSeconds = paragraphStartSeconds(index)
+        guard index > 0 else { return }
+        DispatchQueue.main.async {
+            proxy.scrollTo(index, anchor: .top)
+        }
     }
 
     func togglePlayback() {
