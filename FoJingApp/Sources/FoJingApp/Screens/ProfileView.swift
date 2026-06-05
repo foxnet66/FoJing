@@ -3,6 +3,8 @@ import SwiftUI
 struct ProfileView: View {
     let appModel: AppModel
 
+    @State private var showsResetPracticeConfirmation = false
+
     var body: some View {
         List {
             Section {
@@ -20,6 +22,13 @@ struct ProfileView: View {
                     }
                 }
             }
+            Section("操作") {
+                Button(role: .destructive) {
+                    showsResetPracticeConfirmation = true
+                } label: {
+                    Label("重置今日功课", systemImage: "arrow.counterclockwise")
+                }
+            }
             Section {
                 VStack(alignment: .leading, spacing: 8) {
                     Text("佛经")
@@ -35,6 +44,14 @@ struct ProfileView: View {
         .scrollContentBackground(.hidden)
         .navigationTitle("我的")
         .sutraPageBackground()
+        .confirmationDialog("重置今日功课？", isPresented: $showsResetPracticeConfirmation, titleVisibility: .visible) {
+            Button("重置今日功课", role: .destructive) {
+                appModel.resetTodayPractice()
+            }
+            Button("取消", role: .cancel) {}
+        } message: {
+            Text("仅重置今日功课进度，不会删除书签或回向记录。")
+        }
     }
 
     private func profileRow(title: String, detail: String, icon: String) -> some View {
