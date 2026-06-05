@@ -150,10 +150,13 @@ struct ScriptureReaderView: View {
     }
 
     private var miniPlayer: some View {
-        HStack(spacing: 16) {
-            Text("\(formatPlaybackTime(playbackSeconds))/\(formatPlaybackTime(playbackDuration))")
-                .font(.footnote.monospacedDigit())
+        HStack(spacing: 12) {
+            Text(formatPlaybackTime(playbackSeconds))
+                .font(.caption.monospacedDigit())
                 .foregroundStyle(AppTheme.secondaryInk)
+                .frame(width: 44, alignment: .leading)
+                .lineLimit(1)
+                .minimumScaleFactor(0.8)
             Button {
                 togglePlayback()
             } label: {
@@ -161,13 +164,17 @@ struct ScriptureReaderView: View {
                     .font(.system(size: 38))
                     .foregroundStyle(AppTheme.bamboo)
             }
+            .frame(width: 44, height: 44)
             VStack(alignment: .leading, spacing: 4) {
-                Text(mode == .chanting ? "当前第 \(min(activeParagraph + 1, paragraphs.count)) / \(paragraphs.count) 句" : "第 \(min(activeParagraph + 1, paragraphs.count)) / \(paragraphs.count) 段")
-                    .font(.subheadline.weight(.medium))
+                Text(positionText)
+                    .font(.subheadline.weight(.semibold))
+                    .lineLimit(1)
                 Text(playerStatusText)
                     .font(.caption)
                     .foregroundStyle(secondaryReaderText)
+                    .lineLimit(1)
             }
+            .layoutPriority(1)
             Spacer()
             Button {
                 returnToBeginning()
@@ -190,11 +197,12 @@ struct ScriptureReaderView: View {
                 Button {
                     completeLinkedPractice()
                 } label: {
-                    Label(isLinkedPracticeComplete ? "已完成" : "完成", systemImage: isLinkedPracticeComplete ? "checkmark.circle.fill" : "checkmark.circle")
-                        .font(.subheadline.weight(.medium))
+                    Image(systemName: isLinkedPracticeComplete ? "checkmark.circle.fill" : "checkmark.circle")
+                        .font(.title3)
                         .foregroundStyle(isLinkedPracticeComplete ? AppTheme.secondaryInk : AppTheme.bamboo)
                 }
                 .disabled(isLinkedPracticeComplete)
+                .accessibilityLabel(isLinkedPracticeComplete ? "已完成" : "完成")
             }
         }
         .padding(.horizontal, 18)
@@ -252,6 +260,11 @@ private extension ScriptureReaderView {
 
     var secondsPerParagraph: Double {
         playbackDuration / Double(max(paragraphs.count, 1))
+    }
+
+    var positionText: String {
+        let label = mode == .chanting ? "句" : "段"
+        return "第 \(min(activeParagraph + 1, paragraphs.count))/\(paragraphs.count) \(label)"
     }
 
     var playerStatusText: String {
