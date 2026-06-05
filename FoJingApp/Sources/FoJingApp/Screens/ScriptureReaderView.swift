@@ -19,6 +19,7 @@ struct ScriptureReaderView: View {
     @State private var playbackSeconds = 0.0
     @State private var loopCurrentParagraph = false
     @State private var didRestoreProgress = false
+    @State private var canTrackVisibleProgress = false
 
     private let playbackTimer = Timer.publish(every: 1, on: .main, in: .common).autoconnect()
 
@@ -46,7 +47,7 @@ struct ScriptureReaderView: View {
                                     .padding(.horizontal, isPlaying && index == activeParagraph ? 10 : 0)
                                     .background(isPlaying && index == activeParagraph ? AppTheme.gold.opacity(0.16) : .clear, in: RoundedRectangle(cornerRadius: 6))
                                     .onAppear {
-                                        guard didRestoreProgress else { return }
+                                        guard canTrackVisibleProgress else { return }
                                         activeParagraph = index
                                         if loopCurrentParagraph {
                                             playbackSeconds = paragraphStartSeconds(index)
@@ -278,14 +279,19 @@ private extension ScriptureReaderView {
     func restoreReadingProgress(with proxy: ScrollViewProxy) {
         guard !didRestoreProgress else { return }
         didRestoreProgress = true
+        canTrackVisibleProgress = false
         guard !paragraphs.isEmpty else { return }
         let savedIndex = appModel.readingProgress[scripture.id] ?? 0
         let index = min(max(savedIndex, 0), paragraphs.count - 1)
         activeParagraph = index
         playbackSeconds = paragraphStartSeconds(index)
-        guard index > 0 else { return }
         DispatchQueue.main.async {
-            proxy.scrollTo(index, anchor: .top)
+            if index > 0 {
+                proxy.scrollTo(index, anchor: .top)
+            }
+            DispatchQueue.main.asyncAfter(deadline: .now() + 0.35) {
+                canTrackVisibleProgress = true
+            }
         }
     }
 
