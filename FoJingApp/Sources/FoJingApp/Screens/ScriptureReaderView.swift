@@ -1,9 +1,92 @@
 import Foundation
+@preconcurrency import AVFoundation
 import SwiftUI
 
 enum ReaderMode {
     case reading
     case chanting
+}
+
+private final class ScriptureSpeechController: NSObject, @unchecked Sendable, AVSpeechSynthesizerDelegate {
+    private let synthesizer = AVSpeechSynthesizer()
+    private var paragraphs: [String] = []
+    private var language = "zh-Hans"
+    private var loopCurrentParagraph = false
+    private var isStopping = false
+    private var utteranceIndexes: [ObjectIdentifier: Int] = [:]
+
+    var onParagraphChange: ((Int) -> Void)?
+    var onFinished: (() -> Void)?
+
+    override init() {
+        super.init()
+        synthesizer.delegate = self
+    }
+
+    func speak(paragraphs: [String], from index: Int, language: String, loopCurrentParagraph: Bool) {
+        stop()
+        guard !paragraphs.isEmpty else { return }
+
+        configureAudioSession()
+        self.paragraphs = paragraphs
+        self.language = language
+        self.loopCurrentParagraph = loopCurrentParagraph
+        isStopping = false
+        enqueueSpeech(from: min(max(index, 0), paragraphs.count - 1))
+    }
+
+    func stop() {
+        isStopping = true
+        synthesizer.stopSpeaking(at: .immediate)
+        utteranceIndexes.removeAll()
+    }
+
+    private func enqueueSpeech(from index: Int) {
+        let safeIndex = min(max(index, 0), paragraphs.count - 1)
+        let indexes = loopCurrentParagraph ? [safeIndex] : Array(safeIndex..<paragraphs.count)
+
+        for paragraphIndex in indexes {
+            let text = paragraphs[paragraphIndex].trimmingCharacters(in: .whitespacesAndNewlines)
+            guard !text.isEmpty else { continue }
+            let utterance = AVSpeechUtterance(string: text)
+            utterance.voice = AVSpeechSynthesisVoice(language: language)
+            utterance.rate = AVSpeechUtteranceDefaultSpeechRate * 0.82
+            utterance.pitchMultiplier = 0.95
+            utterance.preUtteranceDelay = 0.08
+            utterance.postUtteranceDelay = 0.18
+            utteranceIndexes[ObjectIdentifier(utterance)] = paragraphIndex
+            synthesizer.speak(utterance)
+        }
+    }
+
+    private func configureAudioSession() {
+        try? AVAudioSession.sharedInstance().setCategory(.playback, mode: .spokenAudio, options: [.duckOthers])
+        try? AVAudioSession.sharedInstance().setActive(true)
+    }
+
+    func speechSynthesizer(_ synthesizer: AVSpeechSynthesizer, didStart utterance: AVSpeechUtterance) {
+        guard let index = utteranceIndexes[ObjectIdentifier(utterance)] else { return }
+        DispatchQueue.main.async {
+            self.onParagraphChange?(index)
+        }
+    }
+
+    func speechSynthesizer(_ synthesizer: AVSpeechSynthesizer, didFinish utterance: AVSpeechUtterance) {
+        guard !isStopping, let index = utteranceIndexes[ObjectIdentifier(utterance)] else { return }
+        utteranceIndexes.removeValue(forKey: ObjectIdentifier(utterance))
+
+        if loopCurrentParagraph {
+            enqueueSpeech(from: index)
+        } else if index >= paragraphs.count - 1 {
+            DispatchQueue.main.async {
+                self.onFinished?()
+            }
+        }
+    }
+
+    func speechSynthesizer(_ synthesizer: AVSpeechSynthesizer, didCancel utterance: AVSpeechUtterance) {
+        utteranceIndexes.removeValue(forKey: ObjectIdentifier(utterance))
+    }
 }
 
 struct ScriptureReaderView: View {
@@ -24,6 +107,7 @@ struct ScriptureReaderView: View {
     @State private var canTrackVisibleProgress = false
     @State private var scrollToTopTrigger = 0
     @State private var visibleParagraph: Int?
+    @State private var speechController = ScriptureSpeechController()
 
     private let playbackTimer = Timer.publish(every: 1, on: .main, in: .common).autoconnect()
 
@@ -90,6 +174,7 @@ struct ScriptureReaderView: View {
                     saveVisibleReadingProgress(newValue)
                 }
                 .onAppear {
+                    configureSpeechCallbacks()
                     restoreReadingProgress(with: proxy)
                 }
             }
@@ -130,6 +215,9 @@ struct ScriptureReaderView: View {
         .foregroundStyle(primaryReaderText)
         .onReceive(playbackTimer) { _ in
             advancePlaybackIfNeeded()
+        }
+        .onDisappear {
+            speechController.stop()
         }
     }
 
@@ -200,6 +288,9 @@ struct ScriptureReaderView: View {
             Button {
                 loopCurrentParagraph.toggle()
                 playbackSeconds = paragraphStartSeconds(activeParagraph)
+                if isPlaying {
+                    startReadingAloud()
+                }
             } label: {
                 Image(systemName: loopCurrentParagraph ? "repeat.1.circle.fill" : "repeat.1.circle")
                     .font(.title3)
@@ -318,6 +409,7 @@ private extension ScriptureReaderView {
 
     func completeLinkedPractice() {
         guard let item = linkedPractice, !item.isComplete else { return }
+        speechController.stop()
         appModel.markPracticeComplete(id: item.id)
         appModel.resetProgress(scripture: scripture)
         activeParagraph = 0
@@ -327,6 +419,7 @@ private extension ScriptureReaderView {
     }
 
     func returnToBeginning() {
+        speechController.stop()
         isPlaying = false
         activeParagraph = 0
         playbackSeconds = 0
@@ -367,11 +460,16 @@ private extension ScriptureReaderView {
     }
 
     func togglePlayback() {
-        if playbackSeconds >= playbackDuration {
-            playbackSeconds = 0
-            activeParagraph = 0
+        if isPlaying {
+            speechController.stop()
+            isPlaying = false
+        } else {
+            if playbackSeconds >= playbackDuration {
+                playbackSeconds = 0
+                activeParagraph = 0
+            }
+            startReadingAloud()
         }
-        isPlaying.toggle()
     }
 
     func advancePlaybackIfNeeded() {
@@ -383,8 +481,26 @@ private extension ScriptureReaderView {
         }
 
         playbackSeconds = nextSecond
-        activeParagraph = paragraphIndex(at: nextSecond)
-        if nextSecond >= playbackDuration {
+    }
+
+    func startReadingAloud() {
+        let language = appModel.readerSettings.useTraditional ? "zh-Hant" : "zh-Hans"
+        speechController.speak(
+            paragraphs: paragraphs,
+            from: activeParagraph,
+            language: language,
+            loopCurrentParagraph: loopCurrentParagraph
+        )
+        isPlaying = true
+    }
+
+    func configureSpeechCallbacks() {
+        speechController.onParagraphChange = { index in
+            activeParagraph = index
+            playbackSeconds = paragraphStartSeconds(index)
+        }
+        speechController.onFinished = {
+            playbackSeconds = playbackDuration
             isPlaying = false
         }
     }
