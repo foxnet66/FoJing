@@ -21,6 +21,7 @@ struct ScriptureReaderView: View {
     @State private var didRestoreProgress = false
     @State private var canTrackVisibleProgress = false
     @State private var scrollToTopTrigger = 0
+    @State private var visibleParagraph: Int?
 
     private let playbackTimer = Timer.publish(every: 1, on: .main, in: .common).autoconnect()
 
@@ -37,7 +38,7 @@ struct ScriptureReaderView: View {
             readerBackground.ignoresSafeArea()
             ScrollViewReader { proxy in
                 ScrollView {
-                    VStack(alignment: .leading, spacing: 22) {
+                    LazyVStack(alignment: .leading, spacing: 22) {
                         ForEach(Array(paragraphs.enumerated()), id: \.offset) { index, text in
                             VStack(alignment: .leading, spacing: 8) {
                                 Text(text)
@@ -47,14 +48,6 @@ struct ScriptureReaderView: View {
                                     .padding(.vertical, 4)
                                     .padding(.horizontal, isPlaying && index == activeParagraph ? 10 : 0)
                                     .background(isPlaying && index == activeParagraph ? AppTheme.gold.opacity(0.16) : .clear, in: RoundedRectangle(cornerRadius: 6))
-                                    .onAppear {
-                                        guard canTrackVisibleProgress, !isPlaying else { return }
-                                        activeParagraph = index
-                                        if loopCurrentParagraph {
-                                            playbackSeconds = paragraphStartSeconds(index)
-                                        }
-                                        appModel.saveProgress(scripture: scripture, paragraphIndex: index)
-                                    }
 
                                 if appModel.readerSettings.showPinyin {
                                     Text(pinyinText(for: text, at: index))
@@ -74,10 +67,12 @@ struct ScriptureReaderView: View {
                             .id(index)
                         }
                     }
+                    .scrollTargetLayout()
                     .padding(.horizontal, 24)
                     .padding(.top, 20)
                     .padding(.bottom, appModel.readerSettings.showPinyin ? 96 : 72)
                 }
+                .scrollPosition(id: $visibleParagraph, anchor: .top)
                 .onChange(of: activeParagraph) { _, newValue in
                     guard isPlaying, appModel.readerSettings.autoScroll else { return }
                     withAnimation(.easeInOut(duration: 0.35)) {
@@ -88,6 +83,9 @@ struct ScriptureReaderView: View {
                     withAnimation(.easeInOut(duration: 0.35)) {
                         proxy.scrollTo(0, anchor: .top)
                     }
+                }
+                .onChange(of: visibleParagraph) { _, newValue in
+                    saveVisibleReadingProgress(newValue)
                 }
                 .onAppear {
                     restoreReadingProgress(with: proxy)
@@ -297,6 +295,7 @@ private extension ScriptureReaderView {
         isPlaying = false
         activeParagraph = 0
         playbackSeconds = 0
+        visibleParagraph = 0
         appModel.resetProgress(scripture: scripture)
         scrollToTopTrigger += 1
     }
@@ -309,6 +308,7 @@ private extension ScriptureReaderView {
         let savedIndex = appModel.readingProgress[scripture.id] ?? 0
         let index = min(max(savedIndex, 0), paragraphs.count - 1)
         activeParagraph = index
+        visibleParagraph = index
         playbackSeconds = paragraphStartSeconds(index)
         DispatchQueue.main.async {
             if index > 0 {
@@ -318,6 +318,17 @@ private extension ScriptureReaderView {
                 canTrackVisibleProgress = true
             }
         }
+    }
+
+    func saveVisibleReadingProgress(_ paragraphIndex: Int?) {
+        guard canTrackVisibleProgress, !isPlaying else { return }
+        guard let paragraphIndex else { return }
+        let index = min(max(paragraphIndex, 0), max(paragraphs.count - 1, 0))
+        activeParagraph = index
+        if loopCurrentParagraph {
+            playbackSeconds = paragraphStartSeconds(index)
+        }
+        appModel.saveProgress(scripture: scripture, paragraphIndex: index)
     }
 
     func togglePlayback() {
