@@ -157,6 +157,7 @@ struct TodayView: View {
         }
     }
 
+    @ViewBuilder
     private func practiceRowContent(_ item: PracticeItem, showsNavigation: Bool) -> some View {
         if usesStackedPracticeRows {
             stackedPracticeRowContent(item, showsNavigation: showsNavigation)
