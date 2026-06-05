@@ -8,14 +8,24 @@ struct ScriptureLibraryView: View {
 
     private let categories = ["常诵经典", "净土", "般若", "观音", "地藏", "药师", "咒语"]
 
+    private var trimmedQuery: String {
+        query.trimmingCharacters(in: .whitespacesAndNewlines)
+    }
+
+    private var listTitle: String {
+        trimmedQuery.isEmpty ? selectedCategory : "搜索结果"
+    }
+
     private var visibleScriptures: [Scripture] {
         appModel.scriptures.filter { scripture in
-            let matchesCategory = scripture.category == selectedCategory
-            let matchesQuery = query.isEmpty ||
-                scripture.title.localizedStandardContains(query) ||
-                scripture.shortTitle.localizedStandardContains(query) ||
-                scripture.translator.localizedStandardContains(query)
-            return matchesCategory && matchesQuery
+            if trimmedQuery.isEmpty {
+                return scripture.category == selectedCategory
+            }
+
+            return scripture.title.localizedStandardContains(trimmedQuery) ||
+                scripture.shortTitle.localizedStandardContains(trimmedQuery) ||
+                scripture.translator.localizedStandardContains(trimmedQuery) ||
+                scripture.category.localizedStandardContains(trimmedQuery)
         }
     }
 
@@ -69,7 +79,7 @@ struct ScriptureLibraryView: View {
 
     private var scriptureList: some View {
         VStack(alignment: .leading, spacing: 12) {
-            Text(selectedCategory)
+            Text(listTitle)
                 .font(.headline)
 
             ForEach(visibleScriptures) { scripture in
