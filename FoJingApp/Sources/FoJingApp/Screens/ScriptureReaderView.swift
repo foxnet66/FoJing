@@ -20,6 +20,7 @@ struct ScriptureReaderView: View {
     @State private var loopCurrentParagraph = false
     @State private var didRestoreProgress = false
     @State private var canTrackVisibleProgress = false
+    @State private var scrollToTopTrigger = 0
 
     private let playbackTimer = Timer.publish(every: 1, on: .main, in: .common).autoconnect()
 
@@ -47,7 +48,7 @@ struct ScriptureReaderView: View {
                                     .padding(.horizontal, isPlaying && index == activeParagraph ? 10 : 0)
                                     .background(isPlaying && index == activeParagraph ? AppTheme.gold.opacity(0.16) : .clear, in: RoundedRectangle(cornerRadius: 6))
                                     .onAppear {
-                                        guard canTrackVisibleProgress else { return }
+                                        guard canTrackVisibleProgress, !isPlaying else { return }
                                         activeParagraph = index
                                         if loopCurrentParagraph {
                                             playbackSeconds = paragraphStartSeconds(index)
@@ -81,6 +82,11 @@ struct ScriptureReaderView: View {
                     guard isPlaying, appModel.readerSettings.autoScroll else { return }
                     withAnimation(.easeInOut(duration: 0.35)) {
                         proxy.scrollTo(newValue, anchor: .center)
+                    }
+                }
+                .onChange(of: scrollToTopTrigger) { _, _ in
+                    withAnimation(.easeInOut(duration: 0.35)) {
+                        proxy.scrollTo(0, anchor: .top)
                     }
                 }
                 .onAppear {
@@ -165,6 +171,14 @@ struct ScriptureReaderView: View {
                     .foregroundStyle(secondaryReaderText)
             }
             Spacer()
+            Button {
+                returnToBeginning()
+            } label: {
+                Image(systemName: "arrow.up.to.line.circle")
+                    .font(.title3)
+                    .foregroundStyle(secondaryReaderText)
+            }
+            .accessibilityLabel("回到开头")
             Button {
                 loopCurrentParagraph.toggle()
                 playbackSeconds = paragraphStartSeconds(activeParagraph)
@@ -279,6 +293,14 @@ private extension ScriptureReaderView {
         isPlaying = false
     }
 
+    func returnToBeginning() {
+        isPlaying = false
+        activeParagraph = 0
+        playbackSeconds = 0
+        appModel.resetProgress(scripture: scripture)
+        scrollToTopTrigger += 1
+    }
+
     func restoreReadingProgress(with proxy: ScrollViewProxy) {
         guard !didRestoreProgress else { return }
         didRestoreProgress = true
@@ -311,13 +333,11 @@ private extension ScriptureReaderView {
         let nextSecond = min(playbackSeconds + 1, playbackDuration)
         if loopCurrentParagraph, nextSecond >= paragraphEndSeconds(activeParagraph) {
             playbackSeconds = paragraphStartSeconds(activeParagraph)
-            appModel.saveProgress(scripture: scripture, paragraphIndex: activeParagraph)
             return
         }
 
         playbackSeconds = nextSecond
         activeParagraph = paragraphIndex(at: nextSecond)
-        appModel.saveProgress(scripture: scripture, paragraphIndex: activeParagraph)
         if nextSecond >= playbackDuration {
             isPlaying = false
         }
