@@ -1,9 +1,98 @@
+@preconcurrency import AVFoundation
 import SwiftUI
+
+private enum ChantInstrument {
+    case woodFish
+    case bell
+}
+
+private final class ChantSoundEngine: @unchecked Sendable {
+    private let engine = AVAudioEngine()
+    private let player = AVAudioPlayerNode()
+    private let format = AVAudioFormat(standardFormatWithSampleRate: 44_100, channels: 1)!
+    private var isConfigured = false
+
+    init() {
+        engine.attach(player)
+        engine.connect(player, to: engine.mainMixerNode, format: format)
+    }
+
+    func play(_ instrument: ChantInstrument) {
+        configureAudioSession()
+        startEngineIfNeeded()
+
+        let buffer = makeBuffer(for: instrument)
+        player.stop()
+        player.scheduleBuffer(buffer, at: nil, options: [])
+        player.play()
+    }
+
+    private func configureAudioSession() {
+        guard !isConfigured else { return }
+        try? AVAudioSession.sharedInstance().setCategory(.playback, mode: .default, options: [.mixWithOthers])
+        try? AVAudioSession.sharedInstance().setActive(true)
+        isConfigured = true
+    }
+
+    private func startEngineIfNeeded() {
+        guard !engine.isRunning else { return }
+        try? engine.start()
+    }
+
+    private func makeBuffer(for instrument: ChantInstrument) -> AVAudioPCMBuffer {
+        switch instrument {
+        case .woodFish:
+            makeWoodFishBuffer()
+        case .bell:
+            makeBellBuffer()
+        }
+    }
+
+    private func makeWoodFishBuffer() -> AVAudioPCMBuffer {
+        let sampleRate = format.sampleRate
+        let duration = 0.22
+        let frameCount = AVAudioFrameCount(sampleRate * duration)
+        let buffer = AVAudioPCMBuffer(pcmFormat: format, frameCapacity: frameCount)!
+        buffer.frameLength = frameCount
+        let samples = buffer.floatChannelData![0]
+
+        for frame in 0..<Int(frameCount) {
+            let t = Double(frame) / sampleRate
+            let strike = exp(-t * 34.0)
+            let body = sin(2.0 * .pi * 190.0 * t) * strike
+            let knock = sin(2.0 * .pi * 520.0 * t) * exp(-t * 76.0)
+            let click = frame < 160 ? (Double(160 - frame) / 160.0) * 0.18 : 0
+            samples[frame] = Float((body * 0.48) + (knock * 0.22) + click)
+        }
+
+        return buffer
+    }
+
+    private func makeBellBuffer() -> AVAudioPCMBuffer {
+        let sampleRate = format.sampleRate
+        let duration = 1.25
+        let frameCount = AVAudioFrameCount(sampleRate * duration)
+        let buffer = AVAudioPCMBuffer(pcmFormat: format, frameCapacity: frameCount)!
+        buffer.frameLength = frameCount
+        let samples = buffer.floatChannelData![0]
+
+        for frame in 0..<Int(frameCount) {
+            let t = Double(frame) / sampleRate
+            let shimmer = sin(2.0 * .pi * 1_320.0 * t) * exp(-t * 2.6)
+            let overtone = sin(2.0 * .pi * 1_980.0 * t) * exp(-t * 3.4)
+            let high = sin(2.0 * .pi * 2_640.0 * t) * exp(-t * 4.2)
+            samples[frame] = Float((shimmer * 0.34) + (overtone * 0.2) + (high * 0.12))
+        }
+
+        return buffer
+    }
+}
 
 struct ChantPracticeView: View {
     @Bindable var appModel: AppModel
     @State private var woodFishEnabled = true
     @State private var bellEnabled = false
+    @State private var soundEngine = ChantSoundEngine()
 
     private var counterPractice: PracticeItem {
         appModel.practiceItems.first { $0.kind == .counter } ??
@@ -37,7 +126,7 @@ struct ChantPracticeView: View {
                         .monospacedDigit()
                         .foregroundStyle(AppTheme.bamboo)
                     Button {
-                        appModel.incrementPractice(id: counterPractice.id)
+                        incrementCounter()
                     } label: {
                         Text(counterPractice.isComplete ? "已完成" : "记一声")
                             .font(.title3.weight(.semibold))
@@ -83,6 +172,21 @@ struct ChantPracticeView: View {
         }
         .navigationTitle("诵持")
         .sutraPageBackground()
+    }
+
+    private func incrementCounter() {
+        let willComplete = counterPractice.current + 1 >= counterPractice.target
+        appModel.incrementPractice(id: counterPractice.id)
+
+        if woodFishEnabled {
+            soundEngine.play(.woodFish)
+        }
+
+        if willComplete, bellEnabled {
+            DispatchQueue.main.asyncAfter(deadline: .now() + 0.22) {
+                soundEngine.play(.bell)
+            }
+        }
     }
 }
 
