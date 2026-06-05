@@ -106,6 +106,8 @@ struct ScriptureReaderView: View {
     @State private var loopCurrentParagraph = false
     @State private var didRestoreProgress = false
     @State private var scrollToTopTrigger = 0
+    @State private var pendingPracticeCompletion: PracticeItem?
+    @State private var showsPracticeCompletionConfirmation = false
     @State private var speechController = ScriptureSpeechController()
 
     private let playbackTimer = Timer.publish(every: 1, on: .main, in: .common).autoconnect()
@@ -210,6 +212,20 @@ struct ScriptureReaderView: View {
             )
             .presentationDetents([.medium])
         }
+        .confirmationDialog(
+            practiceCompletionDialogTitle,
+            isPresented: $showsPracticeCompletionConfirmation,
+            titleVisibility: .visible
+        ) {
+            Button(practiceCompletionConfirmTitle) {
+                completeLinkedPractice()
+            }
+            Button("取消", role: .cancel) {
+                pendingPracticeCompletion = nil
+            }
+        } message: {
+            Text(practiceCompletionDialogMessage)
+        }
         .toolbarBackground(readerChromeBackground, for: .navigationBar)
         .toolbarBackground(.visible, for: .navigationBar)
         .toolbarColorScheme(usesDarkReaderChrome ? .dark : .light, for: .navigationBar)
@@ -309,14 +325,14 @@ struct ScriptureReaderView: View {
             .accessibilityLabel(loopCurrentParagraph ? "关闭单句循环" : "开启单句循环")
             if linkedPractice != nil {
                 Button {
-                    completeLinkedPractice()
+                    requestLinkedPracticeCompletion()
                 } label: {
                     Image(systemName: isLinkedPracticeComplete ? "checkmark.circle.fill" : "checkmark.circle")
                         .font(.title3)
                         .foregroundStyle(isLinkedPracticeComplete ? AppTheme.secondaryInk : AppTheme.bamboo)
                 }
                 .disabled(isLinkedPracticeComplete)
-                .accessibilityLabel(isLinkedPracticeComplete ? "已完成" : "完成")
+                .accessibilityLabel(linkedPracticeCompletionLabel)
             }
         }
         .padding(.horizontal, 18)
@@ -402,6 +418,36 @@ private extension ScriptureReaderView {
         return item.isComplete
     }
 
+    var practiceCompletionDialogTitle: String {
+        guard let item = pendingPracticeCompletion else { return "确认完成？" }
+        return "确认完成第 \(item.current + 1) \(item.unit)？"
+    }
+
+    var practiceCompletionConfirmTitle: String {
+        guard let item = pendingPracticeCompletion else { return "完成" }
+        return "完成第 \(item.current + 1) \(item.unit)"
+    }
+
+    var practiceCompletionDialogMessage: String {
+        guard let item = pendingPracticeCompletion else { return "" }
+        let nextCount = min(item.current + 1, item.target)
+        if nextCount >= item.target {
+            return "将记录为 \(nextCount)/\(item.target) \(item.unit)，并标记今日\(item.title)已完成。"
+        }
+        return "将记录为 \(nextCount)/\(item.target) \(item.unit)，并回到开头继续下一遍。"
+    }
+
+    var linkedPracticeCompletionLabel: String {
+        guard let item = linkedPractice else { return "完成" }
+        if item.isComplete {
+            return "已完成"
+        }
+        if item.target > 1 {
+            return "完成第 \(item.current + 1) \(item.unit)"
+        }
+        return "完成"
+    }
+
     var linkedPractice: PracticeItem? {
         guard let practiceID else { return nil }
         return appModel.practiceItems.first { $0.id == practiceID }
@@ -419,13 +465,25 @@ private extension ScriptureReaderView {
 
     func completeLinkedPractice() {
         guard let item = linkedPractice, !item.isComplete else { return }
+        showsPracticeCompletionConfirmation = false
+        pendingPracticeCompletion = nil
         speechController.stop()
-        appModel.markPracticeComplete(id: item.id)
+        appModel.incrementPractice(id: item.id)
         appModel.resetProgress(scripture: scripture)
         activeParagraph = 0
         playbackSeconds = 0
         didTapComplete.toggle()
         isPlaying = false
+    }
+
+    func requestLinkedPracticeCompletion() {
+        guard let item = linkedPractice, !item.isComplete else { return }
+        if item.target > 1 {
+            pendingPracticeCompletion = item
+            showsPracticeCompletionConfirmation = true
+        } else {
+            completeLinkedPractice()
+        }
     }
 
     func returnToBeginning() {
