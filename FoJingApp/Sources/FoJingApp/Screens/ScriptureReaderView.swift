@@ -7,6 +7,8 @@ enum ReaderMode {
 }
 
 struct ScriptureReaderView: View {
+    @Environment(\.dynamicTypeSize) private var dynamicTypeSize
+
     @Bindable var appModel: AppModel
     let scripture: Scripture
     let mode: ReaderMode
@@ -150,7 +152,7 @@ struct ScriptureReaderView: View {
     }
 
     private var miniPlayer: some View {
-        HStack(spacing: 12) {
+        HStack(spacing: usesCompactMiniPlayer ? 10 : 12) {
             Text(formatPlaybackTime(playbackSeconds))
                 .font(.caption.monospacedDigit())
                 .foregroundStyle(AppTheme.secondaryInk)
@@ -165,16 +167,27 @@ struct ScriptureReaderView: View {
                     .foregroundStyle(AppTheme.bamboo)
             }
             .frame(width: 44, height: 44)
-            VStack(alignment: .leading, spacing: 4) {
-                Text(positionText)
-                    .font(.subheadline.weight(.semibold))
+            if usesCompactMiniPlayer {
+                Text(compactPositionText)
+                    .font(.subheadline.monospacedDigit().weight(.semibold))
                     .lineLimit(1)
-                Text(playerStatusText)
-                    .font(.caption)
-                    .foregroundStyle(secondaryReaderText)
-                    .lineLimit(1)
+                    .minimumScaleFactor(0.72)
+                    .foregroundStyle(primaryReaderText)
+                    .layoutPriority(1)
+            } else {
+                VStack(alignment: .leading, spacing: 4) {
+                    Text(positionText)
+                        .font(.subheadline.weight(.semibold))
+                        .lineLimit(1)
+                        .minimumScaleFactor(0.8)
+                    Text(playerStatusText)
+                        .font(.caption)
+                        .foregroundStyle(secondaryReaderText)
+                        .lineLimit(1)
+                        .minimumScaleFactor(0.8)
+                }
+                .layoutPriority(1)
             }
-            .layoutPriority(1)
             Spacer()
             Button {
                 returnToBeginning()
@@ -262,9 +275,18 @@ private extension ScriptureReaderView {
         playbackDuration / Double(max(paragraphs.count, 1))
     }
 
+    var usesCompactMiniPlayer: Bool {
+        dynamicTypeSize >= .xxLarge
+    }
+
     var positionText: String {
         let label = mode == .chanting ? "句" : "段"
         return "第 \(min(activeParagraph + 1, paragraphs.count))/\(paragraphs.count) \(label)"
+    }
+
+    var compactPositionText: String {
+        let label = mode == .chanting ? "句" : "段"
+        return "\(min(activeParagraph + 1, paragraphs.count))/\(paragraphs.count)\(label)"
     }
 
     var playerStatusText: String {
