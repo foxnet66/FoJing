@@ -193,6 +193,13 @@ final class AppModel {
         save()
     }
 
+    func resetProgress(scripture: Scripture) {
+        var progress = readingProgress
+        progress[scripture.id] = 0
+        readingProgress = progress
+        save()
+    }
+
     func updateReaderSettings(_ settings: ReaderSettings) {
         readerSettings = settings
     }

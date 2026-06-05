@@ -272,6 +272,9 @@ private extension ScriptureReaderView {
     func completeLinkedPractice() {
         guard let item = linkedPractice, !item.isComplete else { return }
         appModel.markPracticeComplete(id: item.id)
+        appModel.resetProgress(scripture: scripture)
+        activeParagraph = 0
+        playbackSeconds = 0
         didTapComplete.toggle()
         isPlaying = false
     }
