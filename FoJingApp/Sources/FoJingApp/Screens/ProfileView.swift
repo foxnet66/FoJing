@@ -41,7 +41,7 @@ struct ProfileView: View {
                 VStack(alignment: .leading, spacing: 8) {
                     Text("佛经")
                         .font(.headline)
-                    Text("清净阅读型 SwiftUI MVP 骨架")
+                    Text("版本 \(appVersionText) · 开发者 James Wang")
                         .font(.subheadline)
                         .foregroundStyle(.secondary)
                 }
@@ -100,6 +100,15 @@ struct ProfileView: View {
                 .lineLimit(2)
         }
         .padding(.vertical, 4)
+    }
+
+    private var appVersionText: String {
+        let version = Bundle.main.object(forInfoDictionaryKey: "CFBundleShortVersionString") as? String ?? "1.0"
+        let build = Bundle.main.object(forInfoDictionaryKey: "CFBundleVersion") as? String
+        guard let build, !build.isEmpty, build != version else {
+            return version
+        }
+        return "\(version) (\(build))"
     }
 }
 
