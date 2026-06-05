@@ -8,6 +8,8 @@ enum AppTab: Hashable {
 }
 
 struct AppShellView: View {
+    @Environment(\.colorScheme) private var colorScheme
+
     let appModel: AppModel
     @State private var selectedTab: AppTab = .today
 
@@ -46,6 +48,9 @@ struct AppShellView: View {
             .tag(AppTab.profile)
         }
         .tint(AppTheme.bamboo)
+        .toolbarBackground(AppTheme.paper, for: .tabBar)
+        .toolbarBackground(.visible, for: .tabBar)
+        .toolbarColorScheme(colorScheme, for: .tabBar)
     }
 }
 

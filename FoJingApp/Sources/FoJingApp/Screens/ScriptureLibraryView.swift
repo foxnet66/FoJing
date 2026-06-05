@@ -37,6 +37,7 @@ struct ScriptureLibraryView: View {
                 scriptureList
             }
             .padding(20)
+            .padding(.bottom, AppTheme.tabContentBottomPadding)
         }
         .navigationTitle("经藏")
         .sutraPageBackground()
@@ -50,10 +51,10 @@ struct ScriptureLibraryView: View {
                 .textInputAutocapitalization(.never)
         }
         .padding(13)
-        .background(.white.opacity(0.46), in: RoundedRectangle(cornerRadius: 8))
+        .background(AppTheme.surface, in: RoundedRectangle(cornerRadius: 8))
         .overlay {
             RoundedRectangle(cornerRadius: 8)
-                .stroke(AppTheme.paperDeep, lineWidth: 1)
+                .stroke(AppTheme.separator, lineWidth: 1)
         }
     }
 
@@ -68,8 +69,8 @@ struct ScriptureLibraryView: View {
                             .font(.subheadline.weight(.medium))
                             .padding(.horizontal, 14)
                             .padding(.vertical, 8)
-                            .foregroundStyle(selectedCategory == category ? .white : AppTheme.bamboo)
-                            .background(selectedCategory == category ? AppTheme.bamboo : .white.opacity(0.34), in: Capsule())
+                            .foregroundStyle(selectedCategory == category ? Color.white : AppTheme.bamboo)
+                            .background(selectedCategory == category ? AppTheme.bamboo : AppTheme.surfaceSubtle, in: Capsule())
                     }
                     .buttonStyle(.plain)
                 }
@@ -192,7 +193,7 @@ struct ScriptureDetailView: View {
                             .font(.headline)
                             .frame(maxWidth: .infinity)
                             .padding(.vertical, 15)
-                            .foregroundStyle(.white)
+                            .foregroundStyle(Color.white)
                             .background(AppTheme.bamboo, in: RoundedRectangle(cornerRadius: 8))
                     }
                     .buttonStyle(.plain)
@@ -216,6 +217,7 @@ struct ScriptureDetailView: View {
                 }
             }
             .padding(20)
+            .padding(.bottom, AppTheme.tabContentBottomPadding)
         }
         .navigationTitle("经文详情")
         .navigationBarTitleDisplayMode(.inline)

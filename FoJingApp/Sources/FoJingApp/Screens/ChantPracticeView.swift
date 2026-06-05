@@ -141,7 +141,7 @@ struct ChantPracticeView: View {
                             .font(.title3.weight(.semibold))
                             .frame(maxWidth: .infinity)
                             .padding(.vertical, 18)
-                            .foregroundStyle(.white)
+                            .foregroundStyle(Color.white)
                             .background(AppTheme.bamboo, in: RoundedRectangle(cornerRadius: 8))
                     }
                     .buttonStyle(.plain)
@@ -150,10 +150,10 @@ struct ChantPracticeView: View {
                 }
                 .frame(maxWidth: .infinity)
                 .padding(22)
-                .background(.white.opacity(0.42), in: RoundedRectangle(cornerRadius: 8))
+                .background(AppTheme.surface, in: RoundedRectangle(cornerRadius: 8))
                 .overlay {
                     RoundedRectangle(cornerRadius: 8)
-                        .stroke(AppTheme.paperDeep.opacity(0.7), lineWidth: 1)
+                        .stroke(AppTheme.separator, lineWidth: 1)
                 }
 
                 PaperCard {
@@ -178,6 +178,7 @@ struct ChantPracticeView: View {
                 .disabled(appModel.firstIncompletePractice != nil)
             }
             .padding(20)
+            .padding(.bottom, AppTheme.tabContentBottomPadding)
         }
         .navigationTitle("诵持")
         .sutraPageBackground()

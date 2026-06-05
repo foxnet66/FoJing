@@ -52,7 +52,7 @@ struct TodayView: View {
             }
             .padding(.horizontal, 20)
             .padding(.top, 14)
-            .padding(.bottom, 24)
+            .padding(.bottom, AppTheme.tabContentBottomPadding)
         }
         .navigationTitle("今日")
         .sutraPageBackground()
@@ -95,7 +95,7 @@ struct TodayView: View {
                     .foregroundStyle(AppTheme.bamboo)
                     .padding(.horizontal, 10)
                     .padding(.vertical, 7)
-                    .background(.white.opacity(0.42), in: Capsule())
+                    .background(AppTheme.surfaceSubtle, in: Capsule())
 
                 Spacer()
 
@@ -281,7 +281,7 @@ struct TodayView: View {
             .font(.headline)
             .frame(maxWidth: .infinity)
             .padding(.vertical, 15)
-            .foregroundStyle(.white)
+            .foregroundStyle(Color.white)
             .background(AppTheme.bamboo, in: RoundedRectangle(cornerRadius: 8))
             .accessibilityLabel(title)
     }

@@ -9,16 +9,23 @@ struct ProfileView: View {
         List {
             Section {
                 profileRow(title: "书签", detail: "\(appModel.bookmarkedScriptureIDs.count) 条", icon: "bookmark")
+                    .profileListRowStyle()
                 profileRow(title: "回向记录", detail: "\(appModel.dedicationRecords.count) 条", icon: "clock.arrow.circlepath")
+                    .profileListRowStyle()
                 profileRow(title: "日课设置", detail: "\(appModel.completedPracticeCount)/\(appModel.practiceItems.count) 项完成", icon: "calendar")
+                    .profileListRowStyle()
                 profileRow(title: "阅读设置", detail: "\(Int(appModel.readerSettings.fontSize)) pt", icon: "textformat.size")
+                    .profileListRowStyle()
                 profileRow(title: "文本来源", detail: "待接入可追溯版本", icon: "checkmark.seal")
+                    .profileListRowStyle()
                 profileRow(title: "隐私说明", detail: "当前仅本机保存", icon: "hand.raised")
+                    .profileListRowStyle()
             }
             if !appModel.dedicationRecords.isEmpty {
                 Section("最近回向") {
                     ForEach(appModel.dedicationRecords.prefix(5)) { record in
                         dedicationRecordRow(record)
+                            .profileListRowStyle()
                     }
                 }
             }
@@ -28,6 +35,7 @@ struct ProfileView: View {
                 } label: {
                     Label("重置今日功课", systemImage: "arrow.counterclockwise")
                 }
+                .profileListRowStyle()
             }
             Section {
                 VStack(alignment: .leading, spacing: 8) {
@@ -38,12 +46,16 @@ struct ProfileView: View {
                         .foregroundStyle(.secondary)
                 }
                 .padding(.vertical, 4)
+                .profileListRowStyle()
             }
         }
         .id(appModel.stateRevision)
         .scrollContentBackground(.hidden)
         .navigationTitle("我的")
         .sutraPageBackground()
+        .safeAreaInset(edge: .bottom) {
+            Color.clear.frame(height: AppTheme.tabContentBottomPadding)
+        }
         .confirmationDialog("重置今日功课？", isPresented: $showsResetPracticeConfirmation, titleVisibility: .visible) {
             Button("重置今日功课", role: .destructive) {
                 appModel.resetTodayPractice()
@@ -88,6 +100,14 @@ struct ProfileView: View {
                 .lineLimit(2)
         }
         .padding(.vertical, 4)
+    }
+}
+
+private extension View {
+    func profileListRowStyle() -> some View {
+        self
+            .listRowBackground(AppTheme.surface)
+            .listRowSeparatorTint(AppTheme.separator)
     }
 }
 

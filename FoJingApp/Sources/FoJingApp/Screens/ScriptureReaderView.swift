@@ -90,6 +90,7 @@ private final class ScriptureSpeechController: NSObject, @unchecked Sendable, AV
 }
 
 struct ScriptureReaderView: View {
+    @Environment(\.colorScheme) private var colorScheme
     @Environment(\.dynamicTypeSize) private var dynamicTypeSize
 
     @Bindable var appModel: AppModel
@@ -178,6 +179,11 @@ struct ScriptureReaderView: View {
         }
         .toolbar(.hidden, for: .tabBar)
         .toolbar {
+            ToolbarItem(placement: .principal) {
+                Text(title)
+                    .font(.headline.weight(.semibold))
+                    .foregroundStyle(primaryReaderText)
+            }
             ToolbarItemGroup(placement: .topBarTrailing) {
                 Button {
                     showSettings = true
@@ -191,7 +197,7 @@ struct ScriptureReaderView: View {
                 }
             }
         }
-        .navigationTitle(title)
+        .navigationTitle("")
         .navigationBarTitleDisplayMode(.inline)
         .sheet(isPresented: $showSettings) {
             ReaderSettingsSheet(
@@ -204,8 +210,10 @@ struct ScriptureReaderView: View {
             )
             .presentationDetents([.medium])
         }
-        .toolbarBackground(appModel.readerSettings.nightMode ? Color(red: 0.08, green: 0.075, blue: 0.065) : AppTheme.paper, for: .navigationBar)
-        .toolbarColorScheme(appModel.readerSettings.nightMode ? .dark : .light, for: .navigationBar)
+        .toolbarBackground(readerChromeBackground, for: .navigationBar)
+        .toolbarBackground(.visible, for: .navigationBar)
+        .toolbarColorScheme(usesDarkReaderChrome ? .dark : .light, for: .navigationBar)
+        .tint(primaryReaderText)
         .foregroundStyle(primaryReaderText)
         .onReceive(playbackTimer) { _ in
             advancePlaybackIfNeeded()
@@ -217,7 +225,7 @@ struct ScriptureReaderView: View {
 
     private var readerBackground: some View {
         Group {
-            if appModel.readerSettings.nightMode {
+            if usesDarkReaderChrome {
                 Color(red: 0.08, green: 0.075, blue: 0.065)
             } else {
                 AppTheme.pageGradient
@@ -225,12 +233,20 @@ struct ScriptureReaderView: View {
         }
     }
 
+    private var usesDarkReaderChrome: Bool {
+        appModel.readerSettings.nightMode || colorScheme == .dark
+    }
+
+    private var readerChromeBackground: Color {
+        usesDarkReaderChrome ? Color(red: 0.08, green: 0.075, blue: 0.065) : AppTheme.paper
+    }
+
     private var primaryReaderText: Color {
-        appModel.readerSettings.nightMode ? Color(red: 0.89, green: 0.84, blue: 0.74) : AppTheme.ink
+        usesDarkReaderChrome ? Color(red: 0.89, green: 0.84, blue: 0.74) : AppTheme.ink
     }
 
     private var secondaryReaderText: Color {
-        appModel.readerSettings.nightMode ? Color(red: 0.64, green: 0.59, blue: 0.49) : AppTheme.secondaryInk
+        usesDarkReaderChrome ? Color(red: 0.64, green: 0.59, blue: 0.49) : AppTheme.secondaryInk
     }
 
     private var miniPlayer: some View {

@@ -43,14 +43,15 @@ struct DedicationView: View {
                     TextEditor(text: $dedicationText)
                         .font(.title3)
                         .lineSpacing(9)
+                        .foregroundStyle(AppTheme.ink)
                         .scrollContentBackground(.hidden)
                         .frame(minHeight: 150)
                         .padding(18)
                         .frame(maxWidth: .infinity, alignment: .leading)
-                        .background(.white.opacity(0.42), in: RoundedRectangle(cornerRadius: 8))
+                        .background(AppTheme.surface, in: RoundedRectangle(cornerRadius: 8))
                         .overlay {
                             RoundedRectangle(cornerRadius: 8)
-                                .stroke(AppTheme.paperDeep.opacity(0.7), lineWidth: 1)
+                                .stroke(AppTheme.separator, lineWidth: 1)
                         }
                 }
 
@@ -66,8 +67,8 @@ struct DedicationView: View {
                                     .font(.subheadline.weight(.medium))
                                     .padding(.horizontal, 14)
                                     .padding(.vertical, 8)
-                                    .foregroundStyle(selectedRecipient == recipient ? .white : AppTheme.bamboo)
-                                    .background(selectedRecipient == recipient ? AppTheme.bamboo : .white.opacity(0.34), in: Capsule())
+                                    .foregroundStyle(selectedRecipient == recipient ? Color.white : AppTheme.bamboo)
+                                    .background(selectedRecipient == recipient ? AppTheme.bamboo : AppTheme.surfaceSubtle, in: Capsule())
                             }
                             .buttonStyle(.plain)
                         }
@@ -77,10 +78,11 @@ struct DedicationView: View {
                         TextField("输入回向对象", text: $customRecipient)
                             .textInputAutocapitalization(.never)
                             .padding(13)
-                            .background(.white.opacity(0.42), in: RoundedRectangle(cornerRadius: 8))
+                            .foregroundStyle(AppTheme.ink)
+                            .background(AppTheme.surface, in: RoundedRectangle(cornerRadius: 8))
                             .overlay {
                                 RoundedRectangle(cornerRadius: 8)
-                                    .stroke(AppTheme.paperDeep.opacity(0.7), lineWidth: 1)
+                                    .stroke(AppTheme.separator, lineWidth: 1)
                             }
                     }
                 }
@@ -92,6 +94,7 @@ struct DedicationView: View {
                 .disabled(!canSave)
             }
             .padding(20)
+            .padding(.bottom, AppTheme.tabContentBottomPadding)
         }
         .navigationTitle("回向")
         .navigationBarTitleDisplayMode(.inline)
