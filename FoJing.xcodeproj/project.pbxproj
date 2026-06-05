@@ -7,6 +7,7 @@
 	objects = {
 
 /* Begin PBXBuildFile section */
+		0C833CA0D46D4D93A5746E91 /* Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = 99C50486F9A7490E84192563 /* Assets.xcassets */; };
 		29E445BB9ED2069B8DED10E5 /* AppShellView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 4461FD7A485216B788FC8F8E /* AppShellView.swift */; };
 		47C5878C713F2DC770B49969 /* FoJingApp.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9010F2F7BFD56F2E49635CC5 /* FoJingApp.swift */; };
 		60C1584584CB4D248F31BBF5 /* ScriptureLibraryView.swift in Sources */ = {isa = PBXBuildFile; fileRef = B09ABDF773FD35D0FF94425F /* ScriptureLibraryView.swift */; };
@@ -26,10 +27,11 @@
 		357683DF9BD46E4AFAF547CB /* great-compassion-mantra.json */ = {isa = PBXFileReference; lastKnownFileType = text.json; path = "great-compassion-mantra.json"; sourceTree = "<group>"; };
 		3778FA52CE72D62569E64800 /* ProfileView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ProfileView.swift; sourceTree = "<group>"; };
 		4461FD7A485216B788FC8F8E /* AppShellView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AppShellView.swift; sourceTree = "<group>"; };
-		51532FB937586E7F5CEF6414 /* FoJingApp.app */ = {isa = PBXFileReference; includeInIndex = 0; lastKnownFileType = wrapper.application; path = FoJingApp.app; sourceTree = BUILT_PRODUCTS_DIR; };
+		51532FB937586E7F5CEF6414 /* FoJing.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = FoJing.app; sourceTree = BUILT_PRODUCTS_DIR; };
 		64520B4537344BAAAFDCCAE1 /* PrototypeData.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PrototypeData.swift; sourceTree = "<group>"; };
 		89C2286784380140EDE175C4 /* ChantPracticeView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ChantPracticeView.swift; sourceTree = "<group>"; };
 		9010F2F7BFD56F2E49635CC5 /* FoJingApp.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = FoJingApp.swift; sourceTree = "<group>"; };
+		99C50486F9A7490E84192563 /* Assets.xcassets */ = {isa = PBXFileReference; lastKnownFileType = folder.assetcatalog; path = Assets.xcassets; sourceTree = "<group>"; };
 		A6CDC0C946E312D80A3B97A4 /* heart-sutra.json */ = {isa = PBXFileReference; lastKnownFileType = text.json; path = "heart-sutra.json"; sourceTree = "<group>"; };
 		B09ABDF773FD35D0FF94425F /* ScriptureLibraryView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ScriptureLibraryView.swift; sourceTree = "<group>"; };
 		B257948A6DEFE31F29A5B145 /* AppTheme.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AppTheme.swift; sourceTree = "<group>"; };
@@ -50,6 +52,7 @@
 		1B817797854D882054961D3E /* Resources */ = {
 			isa = PBXGroup;
 			children = (
+				99C50486F9A7490E84192563 /* Assets.xcassets */,
 				0B134CE8E6C146A049A53EA3 /* Scriptures */,
 			);
 			name = Resources;
@@ -102,7 +105,7 @@
 		EB7D33D232E84E48956B8612 /* Products */ = {
 			isa = PBXGroup;
 			children = (
-				51532FB937586E7F5CEF6414 /* FoJingApp.app */,
+				51532FB937586E7F5CEF6414 /* FoJing.app */,
 			);
 			name = Products;
 			sourceTree = "<group>";
@@ -133,7 +136,7 @@
 			packageProductDependencies = (
 			);
 			productName = FoJingApp;
-			productReference = 51532FB937586E7F5CEF6414 /* FoJingApp.app */;
+			productReference = 51532FB937586E7F5CEF6414 /* FoJing.app */;
 			productType = "com.apple.product-type.application";
 		};
 /* End PBXNativeTarget section */
@@ -144,11 +147,6 @@
 			attributes = {
 				BuildIndependentTargetsInParallel = YES;
 				LastUpgradeCheck = 1430;
-				TargetAttributes = {
-					6FA24500DA8952E553046B93 = {
-						DevelopmentTeam = "";
-					};
-				};
 			};
 			buildConfigurationList = A44161FA2E011AA98683800A /* Build configuration list for PBXProject "FoJing" */;
 			developmentRegion = en;
@@ -174,6 +172,7 @@
 			isa = PBXResourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				0C833CA0D46D4D93A5746E91 /* Assets.xcassets in Resources */,
 				AF94F16B72E3A6F647790141 /* great-compassion-mantra.json in Resources */,
 				852E8E7F9AA0596FDBFBA243 /* heart-sutra.json in Resources */,
 			);
@@ -269,8 +268,9 @@
 		32D199DA7CA7B9D656850803 /* Debug */ = {
 			isa = XCBuildConfiguration;
 			buildSettings = {
-				ASSETCATALOG_COMPILER_APPICON_NAME = "";
+				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
 				CODE_SIGN_IDENTITY = "iPhone Developer";
+				DEVELOPMENT_TEAM = 468SHW5TLW;
 				GENERATE_INFOPLIST_FILE = YES;
 				INFOPLIST_KEY_CFBundleDisplayName = "佛经";
 				INFOPLIST_KEY_UIApplicationSceneManifest_Generation = YES;
@@ -280,6 +280,8 @@
 					"$(inherited)",
 					"@executable_path/Frameworks",
 				);
+				CURRENT_PROJECT_VERSION = 1;
+				MARKETING_VERSION = 1.0;
 				PRODUCT_BUNDLE_IDENTIFIER = com.jameswang.fojing;
 				PRODUCT_NAME = FoJing;
 				SDKROOT = iphoneos;
@@ -347,8 +349,9 @@
 		728160F9A583090D8FF9B6D7 /* Release */ = {
 			isa = XCBuildConfiguration;
 			buildSettings = {
-				ASSETCATALOG_COMPILER_APPICON_NAME = "";
+				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
 				CODE_SIGN_IDENTITY = "iPhone Developer";
+				DEVELOPMENT_TEAM = 468SHW5TLW;
 				GENERATE_INFOPLIST_FILE = YES;
 				INFOPLIST_KEY_CFBundleDisplayName = "佛经";
 				INFOPLIST_KEY_UIApplicationSceneManifest_Generation = YES;
@@ -358,6 +361,8 @@
 					"$(inherited)",
 					"@executable_path/Frameworks",
 				);
+				CURRENT_PROJECT_VERSION = 1;
+				MARKETING_VERSION = 1.0;
 				PRODUCT_BUNDLE_IDENTIFIER = com.jameswang.fojing;
 				PRODUCT_NAME = FoJing;
 				SDKROOT = iphoneos;
