@@ -63,12 +63,13 @@ struct ScriptureReaderView: View {
                 }
                 .padding(.horizontal, 24)
                 .padding(.top, 20)
-                .padding(.bottom, appModel.readerSettings.showPinyin ? 180 : 130)
+                .padding(.bottom, appModel.readerSettings.showPinyin ? 96 : 72)
             }
         }
         .safeAreaInset(edge: .bottom) {
             miniPlayer
         }
+        .toolbar(.hidden, for: .tabBar)
         .toolbar {
             ToolbarItemGroup(placement: .topBarTrailing) {
                 Button {
