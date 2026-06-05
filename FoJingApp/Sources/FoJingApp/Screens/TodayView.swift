@@ -11,6 +11,30 @@ struct TodayView: View {
         appModel.completionFraction
     }
 
+    private var primaryPracticeActionTitle: String {
+        hasStartedTodayPractice ? "继续今日功课" : "开始今日功课"
+    }
+
+    private var hasStartedTodayPractice: Bool {
+        if completedCount > 0 {
+            return true
+        }
+
+        guard let currentPractice = appModel.firstIncompletePractice else {
+            return false
+        }
+
+        if currentPractice.current > 0 {
+            return true
+        }
+
+        guard let scripture = appModel.scripture(for: currentPractice) else {
+            return false
+        }
+
+        return (appModel.readingProgress[scripture.id] ?? 0) > 0
+    }
+
     var body: some View {
         ScrollView {
             VStack(alignment: .leading, spacing: 18) {
@@ -169,7 +193,7 @@ struct TodayView: View {
                 NavigationLink {
                     ChantPracticeView(appModel: appModel)
                 } label: {
-                    primaryActionLabel("开始今日功课", systemImage: "play.fill")
+                    primaryActionLabel(primaryPracticeActionTitle, systemImage: "play.fill")
                 }
                 .buttonStyle(.plain)
             } else if let scripture = appModel.scripture(for: practice) {
@@ -181,7 +205,7 @@ struct TodayView: View {
                         practiceID: practice.id
                     )
                 } label: {
-                    primaryActionLabel("开始今日功课", systemImage: "play.fill")
+                    primaryActionLabel(primaryPracticeActionTitle, systemImage: "play.fill")
                 }
                 .buttonStyle(.plain)
             }
