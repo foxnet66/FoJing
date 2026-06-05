@@ -46,6 +46,10 @@ struct Scripture: Identifiable, Hashable, Codable {
     var duration: String {
         "约 \(durationMinutes) 分钟"
     }
+
+    var isPrototypeContent: Bool {
+        source.contains("原型占位") || simplifiedParagraphs.contains { $0.contains("原型节选") }
+    }
 }
 
 struct ScriptureChapter: Identifiable, Hashable, Codable {

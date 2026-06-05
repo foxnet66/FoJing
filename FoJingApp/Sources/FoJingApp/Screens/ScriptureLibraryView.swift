@@ -90,6 +90,9 @@ struct ScriptureLibraryView: View {
                                     .font(.subheadline)
                                     .foregroundStyle(AppTheme.secondaryInk)
                                 HStack(spacing: 8) {
+                                    if scripture.isPrototypeContent {
+                                        Label("待接入全文", systemImage: "exclamationmark.circle")
+                                    }
                                     if scripture.hasAudio {
                                         Label("音频", systemImage: "speaker.wave.2")
                                     }
@@ -144,6 +147,9 @@ struct ScriptureDetailView: View {
                             .lineSpacing(5)
                         HStack(spacing: 12) {
                             Label(scripture.hasModernPunctuation ? "现代标点" : "原始标点", systemImage: "textformat")
+                            if scripture.isPrototypeContent {
+                                Label("待接入全文", systemImage: "exclamationmark.circle")
+                            }
                             if scripture.hasAudio {
                                 Label("音频", systemImage: "speaker.wave.2")
                             }
@@ -156,22 +162,31 @@ struct ScriptureDetailView: View {
                     }
                 }
 
-                NavigationLink {
-                    ScriptureReaderView(
-                        appModel: appModel,
-                        scripture: scripture,
-                        mode: scripture.category == "咒语" ? .chanting : .reading,
-                        practiceID: nil
-                    )
-                } label: {
-                    Label("开始阅读", systemImage: "book.pages")
+                if scripture.isPrototypeContent {
+                    Label("待接入可追溯全文", systemImage: "exclamationmark.circle")
                         .font(.headline)
                         .frame(maxWidth: .infinity)
                         .padding(.vertical, 15)
-                        .foregroundStyle(.white)
-                        .background(AppTheme.bamboo, in: RoundedRectangle(cornerRadius: 8))
+                        .foregroundStyle(AppTheme.secondaryInk)
+                        .background(AppTheme.paperDeep.opacity(0.72), in: RoundedRectangle(cornerRadius: 8))
+                } else {
+                    NavigationLink {
+                        ScriptureReaderView(
+                            appModel: appModel,
+                            scripture: scripture,
+                            mode: scripture.category == "咒语" ? .chanting : .reading,
+                            practiceID: nil
+                        )
+                    } label: {
+                        Label("开始阅读", systemImage: "book.pages")
+                            .font(.headline)
+                            .frame(maxWidth: .infinity)
+                            .padding(.vertical, 15)
+                            .foregroundStyle(.white)
+                            .background(AppTheme.bamboo, in: RoundedRectangle(cornerRadius: 8))
+                    }
+                    .buttonStyle(.plain)
                 }
-                .buttonStyle(.plain)
 
                 PaperCard {
                     VStack(alignment: .leading, spacing: 10) {
