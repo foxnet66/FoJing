@@ -17,6 +17,7 @@ struct ScriptureReaderView: View {
     @State private var activeParagraph = 0
     @State private var didTapComplete = false
     @State private var playbackSeconds = 0.0
+    @State private var loopCurrentParagraph = false
 
     private let playbackTimer = Timer.publish(every: 1, on: .main, in: .common).autoconnect()
 
@@ -45,6 +46,9 @@ struct ScriptureReaderView: View {
                                     .background(isPlaying && index == activeParagraph ? AppTheme.gold.opacity(0.16) : .clear, in: RoundedRectangle(cornerRadius: 6))
                                     .onAppear {
                                         activeParagraph = index
+                                        if loopCurrentParagraph {
+                                            playbackSeconds = paragraphStartSeconds(index)
+                                        }
                                         appModel.saveProgress(scripture: scripture, paragraphIndex: index)
                                     }
 
@@ -150,11 +154,20 @@ struct ScriptureReaderView: View {
             VStack(alignment: .leading, spacing: 4) {
                 Text(mode == .chanting ? "当前第 \(min(activeParagraph + 1, paragraphs.count)) / \(paragraphs.count) 句" : "第 \(min(activeParagraph + 1, paragraphs.count)) / \(paragraphs.count) 段")
                     .font(.subheadline.weight(.medium))
-                Text(appModel.readerSettings.autoScroll ? "自动滚动开启" : "手动阅读")
+                Text(playerStatusText)
                     .font(.caption)
                     .foregroundStyle(secondaryReaderText)
             }
             Spacer()
+            Button {
+                loopCurrentParagraph.toggle()
+                playbackSeconds = paragraphStartSeconds(activeParagraph)
+            } label: {
+                Image(systemName: loopCurrentParagraph ? "repeat.1.circle.fill" : "repeat.1.circle")
+                    .font(.title3)
+                    .foregroundStyle(loopCurrentParagraph ? AppTheme.bamboo : secondaryReaderText)
+            }
+            .accessibilityLabel(loopCurrentParagraph ? "关闭单句循环" : "开启单句循环")
             if linkedPractice != nil {
                 Button {
                     completeLinkedPractice()
@@ -223,6 +236,13 @@ private extension ScriptureReaderView {
         playbackDuration / Double(max(paragraphs.count, 1))
     }
 
+    var playerStatusText: String {
+        if loopCurrentParagraph {
+            return "单句循环"
+        }
+        return appModel.readerSettings.autoScroll ? "自动滚动开启" : "手动阅读"
+    }
+
     var isLinkedPracticeComplete: Bool {
         guard let item = linkedPractice else { return false }
         return item.isComplete
@@ -261,6 +281,12 @@ private extension ScriptureReaderView {
     func advancePlaybackIfNeeded() {
         guard isPlaying else { return }
         let nextSecond = min(playbackSeconds + 1, playbackDuration)
+        if loopCurrentParagraph, nextSecond >= paragraphEndSeconds(activeParagraph) {
+            playbackSeconds = paragraphStartSeconds(activeParagraph)
+            appModel.saveProgress(scripture: scripture, paragraphIndex: activeParagraph)
+            return
+        }
+
         playbackSeconds = nextSecond
         activeParagraph = paragraphIndex(at: nextSecond)
         appModel.saveProgress(scripture: scripture, paragraphIndex: activeParagraph)
@@ -273,6 +299,14 @@ private extension ScriptureReaderView {
         guard !paragraphs.isEmpty else { return 0 }
         let index = Int(seconds / secondsPerParagraph)
         return min(max(index, 0), paragraphs.count - 1)
+    }
+
+    func paragraphStartSeconds(_ index: Int) -> Double {
+        Double(min(max(index, 0), max(paragraphs.count - 1, 0))) * secondsPerParagraph
+    }
+
+    func paragraphEndSeconds(_ index: Int) -> Double {
+        min(paragraphStartSeconds(index) + secondsPerParagraph, playbackDuration)
     }
 
     func formatPlaybackTime(_ seconds: Double) -> String {
