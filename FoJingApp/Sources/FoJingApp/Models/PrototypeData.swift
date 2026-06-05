@@ -111,6 +111,7 @@ final class AppModel {
     }
     var bookmarkedScriptureIDs: Set<String> = []
     var readingProgress: [String: Int] = [:]
+    var recentScriptureID: String?
     var dedicationRecords: [DedicationRecord] = []
     var stateRevision = 0
 
@@ -147,7 +148,15 @@ final class AppModel {
     }
 
     var recentScripture: Scripture {
-        scripture(id: readingProgress.keys.first ?? "heart-sutra") ?? scriptures[0]
+        if let recent = scripture(id: recentScriptureID), !recent.isPrototypeContent {
+            return recent
+        }
+
+        let readableProgressScripture = readingProgress.keys
+            .compactMap { scripture(id: $0) }
+            .first { !$0.isPrototypeContent }
+
+        return readableProgressScripture ?? scripture(id: "heart-sutra") ?? scriptures[0]
     }
 
     func scripture(id: String?) -> Scripture? {
@@ -194,6 +203,9 @@ final class AppModel {
         var progress = readingProgress
         progress[scripture.id] = paragraphIndex
         readingProgress = progress
+        if !scripture.isPrototypeContent {
+            recentScriptureID = scripture.id
+        }
         save()
     }
 
@@ -237,6 +249,7 @@ final class AppModel {
             readerSettings = state.readerSettings
             bookmarkedScriptureIDs = Set(state.bookmarkedScriptureIDs)
             readingProgress = state.readingProgress
+            recentScriptureID = state.recentScriptureID
             dedicationRecords = state.dedicationRecords
             practiceDateKey = state.practiceDateKey ?? Self.todayPracticeKey
         } catch {
@@ -252,6 +265,7 @@ final class AppModel {
             readerSettings: readerSettings,
             bookmarkedScriptureIDs: Array(bookmarkedScriptureIDs),
             readingProgress: readingProgress,
+            recentScriptureID: recentScriptureID,
             dedicationRecords: dedicationRecords,
             practiceDateKey: practiceDateKey
         )
@@ -274,6 +288,7 @@ private struct PersistedState: Codable {
     let readerSettings: ReaderSettings
     let bookmarkedScriptureIDs: [String]
     let readingProgress: [String: Int]
+    let recentScriptureID: String?
     let dedicationRecords: [DedicationRecord]
     let practiceDateKey: String?
 }
