@@ -99,7 +99,35 @@ struct TodayView: View {
         }
     }
 
+    @ViewBuilder
     private func practiceRow(_ item: PracticeItem) -> some View {
+        if !item.isComplete {
+            NavigationLink {
+                practiceDestination(for: item)
+            } label: {
+                practiceRowContent(item, showsNavigation: true)
+            }
+            .buttonStyle(.plain)
+        } else {
+            practiceRowContent(item, showsNavigation: false)
+        }
+    }
+
+    @ViewBuilder
+    private func practiceDestination(for item: PracticeItem) -> some View {
+        if item.kind == .counter {
+            ChantPracticeView(appModel: appModel)
+        } else if let scripture = appModel.scripture(for: item) {
+            ScriptureReaderView(
+                appModel: appModel,
+                scripture: scripture,
+                mode: item.kind == .chanting ? .chanting : .reading,
+                practiceID: item.id
+            )
+        }
+    }
+
+    private func practiceRowContent(_ item: PracticeItem, showsNavigation: Bool) -> some View {
         HStack(spacing: 12) {
             Image(systemName: item.isComplete ? "checkmark.circle.fill" : "circle")
                 .font(.title3)
@@ -122,6 +150,12 @@ struct TodayView: View {
                     .foregroundStyle(AppTheme.ink)
                 Text(item.unit)
                     .font(.caption)
+                    .foregroundStyle(AppTheme.secondaryInk)
+            }
+
+            if showsNavigation {
+                Image(systemName: "chevron.right")
+                    .font(.caption.weight(.semibold))
                     .foregroundStyle(AppTheme.secondaryInk)
             }
         }
