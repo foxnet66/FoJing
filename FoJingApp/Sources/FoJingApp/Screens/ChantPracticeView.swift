@@ -50,19 +50,28 @@ private final class ChantSoundEngine: @unchecked Sendable {
 
     private func makeWoodFishBuffer() -> AVAudioPCMBuffer {
         let sampleRate = format.sampleRate
-        let duration = 0.22
+        let duration = 0.16
         let frameCount = AVAudioFrameCount(sampleRate * duration)
         let buffer = AVAudioPCMBuffer(pcmFormat: format, frameCapacity: frameCount)!
         buffer.frameLength = frameCount
         let samples = buffer.floatChannelData![0]
+        var noiseSeed: UInt32 = 0x4D55_5955
 
         for frame in 0..<Int(frameCount) {
             let t = Double(frame) / sampleRate
-            let strike = exp(-t * 34.0)
-            let body = sin(2.0 * .pi * 190.0 * t) * strike
-            let knock = sin(2.0 * .pi * 520.0 * t) * exp(-t * 76.0)
-            let click = frame < 160 ? (Double(160 - frame) / 160.0) * 0.18 : 0
-            samples[frame] = Float((body * 0.48) + (knock * 0.22) + click)
+            noiseSeed = noiseSeed &* 1_664_525 &+ 1_013_904_223
+            let noise = (Double(noiseSeed & 0xFFFF) / 32_768.0) - 1.0
+
+            let attack = frame < 180 ? Double(180 - frame) / 180.0 : 0.0
+            let cavity = exp(-t * 42.0)
+            let shortResonance = exp(-t * 82.0)
+            let body =
+                sin(2.0 * .pi * 310.0 * t) * cavity * 0.22 +
+                sin(2.0 * .pi * 620.0 * t) * shortResonance * 0.34 +
+                sin(2.0 * .pi * 930.0 * t) * shortResonance * 0.16
+            let woodenClick = noise * attack * 0.2
+
+            samples[frame] = Float((body + woodenClick) * 0.82)
         }
 
         return buffer
