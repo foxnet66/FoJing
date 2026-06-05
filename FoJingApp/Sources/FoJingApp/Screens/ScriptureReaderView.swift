@@ -104,11 +104,7 @@ struct ScriptureReaderView: View {
     @State private var playbackSeconds = 0.0
     @State private var loopCurrentParagraph = false
     @State private var didRestoreProgress = false
-    @State private var canTrackVisibleProgress = false
     @State private var scrollToTopTrigger = 0
-    @State private var visibleParagraph: Int?
-    @State private var shouldFollowSpeech = true
-    @State private var isProgrammaticScroll = false
     @State private var speechController = ScriptureSpeechController()
 
     private let playbackTimer = Timer.publish(every: 1, on: .main, in: .common).autoconnect()
@@ -134,7 +130,7 @@ struct ScriptureReaderView: View {
                                     .lineSpacing(10)
                                     .foregroundStyle(primaryReaderText)
                                     .padding(.vertical, 4)
-                                    .padding(.horizontal, isPlaying && index == activeParagraph ? 10 : 0)
+                                    .padding(.horizontal, 10)
                                     .background(isPlaying && index == activeParagraph ? AppTheme.gold.opacity(0.16) : .clear, in: RoundedRectangle(cornerRadius: 6))
 
                                 if appModel.readerSettings.showPinyin {
@@ -160,32 +156,16 @@ struct ScriptureReaderView: View {
                     .padding(.top, 20)
                     .padding(.bottom, appModel.readerSettings.showPinyin ? 96 : 72)
                 }
-                .scrollPosition(id: $visibleParagraph, anchor: .top)
                 .onChange(of: activeParagraph) { _, newValue in
-                    guard isPlaying, appModel.readerSettings.autoScroll, shouldFollowSpeech else { return }
-                    isProgrammaticScroll = true
+                    guard isPlaying, appModel.readerSettings.autoScroll else { return }
                     withAnimation(.easeInOut(duration: 0.35)) {
-                        proxy.scrollTo(newValue, anchor: .center)
-                    }
-                    DispatchQueue.main.asyncAfter(deadline: .now() + 0.5) {
-                        isProgrammaticScroll = false
+                        proxy.scrollTo(newValue, anchor: .top)
                     }
                 }
                 .onChange(of: scrollToTopTrigger) { _, _ in
-                    isProgrammaticScroll = true
                     withAnimation(.easeInOut(duration: 0.35)) {
                         proxy.scrollTo(0, anchor: .top)
                     }
-                    DispatchQueue.main.asyncAfter(deadline: .now() + 0.5) {
-                        isProgrammaticScroll = false
-                    }
-                }
-                .onChange(of: visibleParagraph) { _, newValue in
-                    if isPlaying, !isProgrammaticScroll {
-                        shouldFollowSpeech = false
-                        return
-                    }
-                    saveVisibleReadingProgress(newValue)
                 }
                 .onAppear {
                     configureSpeechCallbacks()
@@ -435,10 +415,8 @@ private extension ScriptureReaderView {
     func returnToBeginning() {
         speechController.stop()
         isPlaying = false
-        shouldFollowSpeech = true
         activeParagraph = 0
         playbackSeconds = 0
-        visibleParagraph = 0
         appModel.resetProgress(scripture: scripture)
         scrollToTopTrigger += 1
     }
@@ -446,32 +424,16 @@ private extension ScriptureReaderView {
     func restoreReadingProgress(with proxy: ScrollViewProxy) {
         guard !didRestoreProgress else { return }
         didRestoreProgress = true
-        canTrackVisibleProgress = false
         guard !paragraphs.isEmpty else { return }
         let savedIndex = appModel.readingProgress[scripture.id] ?? 0
         let index = min(max(savedIndex, 0), paragraphs.count - 1)
         activeParagraph = index
-        visibleParagraph = index
         playbackSeconds = paragraphStartSeconds(index)
         DispatchQueue.main.async {
             if index > 0 {
                 proxy.scrollTo(index, anchor: .top)
             }
-            DispatchQueue.main.asyncAfter(deadline: .now() + 0.35) {
-                canTrackVisibleProgress = true
-            }
         }
-    }
-
-    func saveVisibleReadingProgress(_ paragraphIndex: Int?) {
-        guard canTrackVisibleProgress, !isPlaying else { return }
-        guard let paragraphIndex else { return }
-        let index = min(max(paragraphIndex, 0), max(paragraphs.count - 1, 0))
-        activeParagraph = index
-        if loopCurrentParagraph {
-            playbackSeconds = paragraphStartSeconds(index)
-        }
-        appModel.saveProgress(scripture: scripture, paragraphIndex: index)
     }
 
     func togglePlayback() {
@@ -479,7 +441,6 @@ private extension ScriptureReaderView {
             speechController.stop()
             isPlaying = false
         } else {
-            shouldFollowSpeech = true
             if playbackSeconds >= playbackDuration {
                 playbackSeconds = 0
                 activeParagraph = 0
@@ -514,6 +475,7 @@ private extension ScriptureReaderView {
         speechController.onParagraphChange = { index in
             activeParagraph = index
             playbackSeconds = paragraphStartSeconds(index)
+            appModel.saveProgress(scripture: scripture, paragraphIndex: index)
         }
         speechController.onFinished = {
             playbackSeconds = playbackDuration
