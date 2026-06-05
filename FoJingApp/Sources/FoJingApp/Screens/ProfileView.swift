@@ -13,6 +13,13 @@ struct ProfileView: View {
                 profileRow(title: "文本来源", detail: "待接入可追溯版本", icon: "checkmark.seal")
                 profileRow(title: "隐私说明", detail: "当前仅本机保存", icon: "hand.raised")
             }
+            if !appModel.dedicationRecords.isEmpty {
+                Section("最近回向") {
+                    ForEach(appModel.dedicationRecords.prefix(5)) { record in
+                        dedicationRecordRow(record)
+                    }
+                }
+            }
             Section {
                 VStack(alignment: .leading, spacing: 8) {
                     Text("佛经")
@@ -39,6 +46,31 @@ struct ProfileView: View {
                 .font(.subheadline)
                 .foregroundStyle(AppTheme.secondaryInk)
         }
+    }
+
+    private func dedicationRecordRow(_ record: DedicationRecord) -> some View {
+        VStack(alignment: .leading, spacing: 7) {
+            HStack(alignment: .firstTextBaseline) {
+                Text(record.recipient)
+                    .font(.body.weight(.medium))
+                    .foregroundStyle(AppTheme.ink)
+                Spacer()
+                Text(record.date, format: .dateTime.month().day().hour().minute())
+                    .font(.caption)
+                    .foregroundStyle(AppTheme.secondaryInk)
+            }
+            if !record.completedItems.isEmpty {
+                Text(record.completedItems.joined(separator: "、"))
+                    .font(.caption)
+                    .foregroundStyle(AppTheme.bamboo)
+                    .lineLimit(2)
+            }
+            Text(record.text)
+                .font(.caption)
+                .foregroundStyle(AppTheme.secondaryInk)
+                .lineLimit(2)
+        }
+        .padding(.vertical, 4)
     }
 }
 
