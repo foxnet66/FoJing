@@ -1,6 +1,8 @@
 import SwiftUI
 
 struct TodayView: View {
+    @Environment(\.dynamicTypeSize) private var dynamicTypeSize
+
     let appModel: AppModel
 
     private var completedCount: Int {
@@ -9,6 +11,10 @@ struct TodayView: View {
 
     private var completionFraction: Double {
         appModel.completionFraction
+    }
+
+    private var usesStackedPracticeRows: Bool {
+        dynamicTypeSize >= .xxLarge
     }
 
     private var primaryPracticeActionTitle: String {
@@ -152,6 +158,14 @@ struct TodayView: View {
     }
 
     private func practiceRowContent(_ item: PracticeItem, showsNavigation: Bool) -> some View {
+        if usesStackedPracticeRows {
+            stackedPracticeRowContent(item, showsNavigation: showsNavigation)
+        } else {
+            inlinePracticeRowContent(item, showsNavigation: showsNavigation)
+        }
+    }
+
+    private func inlinePracticeRowContent(_ item: PracticeItem, showsNavigation: Bool) -> some View {
         HStack(spacing: 12) {
             Image(systemName: item.isComplete ? "checkmark.circle.fill" : "circle")
                 .font(.title3)
@@ -184,6 +198,43 @@ struct TodayView: View {
             }
         }
         .padding(.vertical, 3)
+    }
+
+    private func stackedPracticeRowContent(_ item: PracticeItem, showsNavigation: Bool) -> some View {
+        HStack(alignment: .top, spacing: 12) {
+            Image(systemName: item.isComplete ? "checkmark.circle.fill" : "circle")
+                .font(.title3)
+                .foregroundStyle(item.isComplete ? AppTheme.bamboo : AppTheme.secondaryInk.opacity(0.72))
+                .frame(width: 24)
+                .padding(.top, 2)
+
+            VStack(alignment: .leading, spacing: 8) {
+                HStack(alignment: .firstTextBaseline, spacing: 8) {
+                    Text(item.title)
+                        .font(.body.weight(.medium))
+                        .lineLimit(2)
+                    Spacer(minLength: 8)
+                    if showsNavigation {
+                        Image(systemName: "chevron.right")
+                            .font(.caption.weight(.semibold))
+                            .foregroundStyle(AppTheme.secondaryInk)
+                    }
+                }
+
+                HStack(alignment: .firstTextBaseline, spacing: 8) {
+                    Text(item.isComplete ? "今日已完成" : rowHint(for: item))
+                        .font(.caption)
+                        .foregroundStyle(AppTheme.secondaryInk)
+                    Spacer(minLength: 8)
+                    Text("\(item.current)/\(item.target) \(item.unit)")
+                        .font(.body.monospacedDigit().weight(.medium))
+                        .foregroundStyle(AppTheme.ink)
+                        .lineLimit(1)
+                        .minimumScaleFactor(0.8)
+                }
+            }
+        }
+        .padding(.vertical, 6)
     }
 
     @ViewBuilder
