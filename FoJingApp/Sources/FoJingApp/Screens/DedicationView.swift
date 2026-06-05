@@ -4,6 +4,7 @@ struct DedicationView: View {
     let appModel: AppModel
 
     @State private var selectedRecipient = "法界众生"
+    @State private var customRecipient = ""
     @State private var dedicationText = "愿以此功德，庄严佛净土\n上报四重恩，下济三途苦\n若有见闻者，悉发菩提心\n尽此一报身，同生极乐国"
     @State private var didSave = false
 
@@ -11,6 +12,15 @@ struct DedicationView: View {
 
     private var hasSavedToday: Bool {
         didSave || appModel.hasSavedDedicationToday
+    }
+
+    private var effectiveRecipient: String {
+        let trimmedCustomRecipient = customRecipient.trimmingCharacters(in: .whitespacesAndNewlines)
+        return selectedRecipient == "自定义" ? trimmedCustomRecipient : selectedRecipient
+    }
+
+    private var canSave: Bool {
+        !hasSavedToday && !effectiveRecipient.isEmpty
     }
 
     var body: some View {
@@ -62,13 +72,24 @@ struct DedicationView: View {
                             .buttonStyle(.plain)
                         }
                     }
+
+                    if selectedRecipient == "自定义" {
+                        TextField("输入回向对象", text: $customRecipient)
+                            .textInputAutocapitalization(.never)
+                            .padding(13)
+                            .background(.white.opacity(0.42), in: RoundedRectangle(cornerRadius: 8))
+                            .overlay {
+                                RoundedRectangle(cornerRadius: 8)
+                                    .stroke(AppTheme.paperDeep.opacity(0.7), lineWidth: 1)
+                            }
+                    }
                 }
 
                 PrimaryActionButton(title: hasSavedToday ? "已保存" : "完成并保存", systemImage: "checkmark.circle.fill") {
-                    appModel.saveDedication(recipient: selectedRecipient, text: dedicationText)
+                    appModel.saveDedication(recipient: effectiveRecipient, text: dedicationText)
                     didSave = true
                 }
-                .disabled(hasSavedToday)
+                .disabled(!canSave)
             }
             .padding(20)
         }
