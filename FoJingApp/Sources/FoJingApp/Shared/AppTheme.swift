@@ -35,6 +35,8 @@ struct PaperCard<Content: View>: View {
 }
 
 struct PrimaryActionButton: View {
+    @Environment(\.isEnabled) private var isEnabled
+
     let title: String
     let systemImage: String
     let action: () -> Void
@@ -45,10 +47,11 @@ struct PrimaryActionButton: View {
                 .font(.headline)
                 .frame(maxWidth: .infinity)
                 .padding(.vertical, 15)
-                .foregroundStyle(.white)
-                .background(AppTheme.bamboo, in: RoundedRectangle(cornerRadius: 8))
+                .foregroundStyle(isEnabled ? .white : AppTheme.secondaryInk)
+                .background(isEnabled ? AppTheme.bamboo : AppTheme.paperDeep.opacity(0.72), in: RoundedRectangle(cornerRadius: 8))
         }
         .buttonStyle(.plain)
+        .opacity(isEnabled ? 1 : 0.78)
         .accessibilityLabel(title)
     }
 }
@@ -66,4 +69,3 @@ extension View {
         modifier(PageBackground())
     }
 }
-
