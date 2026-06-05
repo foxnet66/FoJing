@@ -107,6 +107,8 @@ struct ScriptureReaderView: View {
     @State private var canTrackVisibleProgress = false
     @State private var scrollToTopTrigger = 0
     @State private var visibleParagraph: Int?
+    @State private var shouldFollowSpeech = true
+    @State private var isProgrammaticScroll = false
     @State private var speechController = ScriptureSpeechController()
 
     private let playbackTimer = Timer.publish(every: 1, on: .main, in: .common).autoconnect()
@@ -160,17 +162,29 @@ struct ScriptureReaderView: View {
                 }
                 .scrollPosition(id: $visibleParagraph, anchor: .top)
                 .onChange(of: activeParagraph) { _, newValue in
-                    guard isPlaying, appModel.readerSettings.autoScroll else { return }
+                    guard isPlaying, appModel.readerSettings.autoScroll, shouldFollowSpeech else { return }
+                    isProgrammaticScroll = true
                     withAnimation(.easeInOut(duration: 0.35)) {
                         proxy.scrollTo(newValue, anchor: .center)
                     }
+                    DispatchQueue.main.asyncAfter(deadline: .now() + 0.5) {
+                        isProgrammaticScroll = false
+                    }
                 }
                 .onChange(of: scrollToTopTrigger) { _, _ in
+                    isProgrammaticScroll = true
                     withAnimation(.easeInOut(duration: 0.35)) {
                         proxy.scrollTo(0, anchor: .top)
                     }
+                    DispatchQueue.main.asyncAfter(deadline: .now() + 0.5) {
+                        isProgrammaticScroll = false
+                    }
                 }
                 .onChange(of: visibleParagraph) { _, newValue in
+                    if isPlaying, !isProgrammaticScroll {
+                        shouldFollowSpeech = false
+                        return
+                    }
                     saveVisibleReadingProgress(newValue)
                 }
                 .onAppear {
@@ -421,6 +435,7 @@ private extension ScriptureReaderView {
     func returnToBeginning() {
         speechController.stop()
         isPlaying = false
+        shouldFollowSpeech = true
         activeParagraph = 0
         playbackSeconds = 0
         visibleParagraph = 0
@@ -464,6 +479,7 @@ private extension ScriptureReaderView {
             speechController.stop()
             isPlaying = false
         } else {
+            shouldFollowSpeech = true
             if playbackSeconds >= playbackDuration {
                 playbackSeconds = 0
                 activeParagraph = 0
