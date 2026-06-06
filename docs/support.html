@@ -1,0 +1,123 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>佛经 - 支持</title>
+  <style>
+    :root {
+      color-scheme: light dark;
+      --bg: #f7f4ec;
+      --text: #211f1b;
+      --muted: #6a6254;
+      --card: rgba(255, 255, 255, 0.56);
+      --line: rgba(99, 89, 70, 0.22);
+      --accent: #3f6d59;
+    }
+
+    @media (prefers-color-scheme: dark) {
+      :root {
+        --bg: #15130f;
+        --text: #eee6d2;
+        --muted: #aaa18d;
+        --card: rgba(255, 255, 255, 0.06);
+        --line: rgba(255, 255, 255, 0.13);
+        --accent: #78b894;
+      }
+    }
+
+    * {
+      box-sizing: border-box;
+    }
+
+    body {
+      margin: 0;
+      background: var(--bg);
+      color: var(--text);
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+      line-height: 1.72;
+    }
+
+    main {
+      width: min(860px, calc(100% - 40px));
+      margin: 0 auto;
+      padding: 56px 0;
+    }
+
+    h1 {
+      margin: 0 0 12px;
+      font-size: clamp(2rem, 6vw, 3.5rem);
+      line-height: 1.1;
+      letter-spacing: 0;
+    }
+
+    h2 {
+      margin: 34px 0 10px;
+      font-size: 1.25rem;
+    }
+
+    p, li {
+      font-size: 1.04rem;
+    }
+
+    .meta {
+      margin: 0 0 28px;
+      color: var(--muted);
+    }
+
+    .card {
+      padding: 22px;
+      border: 1px solid var(--line);
+      border-radius: 8px;
+      background: var(--card);
+    }
+
+    a {
+      color: var(--accent);
+    }
+
+    footer {
+      margin-top: 42px;
+      color: var(--muted);
+      font-size: 0.95rem;
+    }
+  </style>
+</head>
+<body>
+  <main>
+    <h1>佛经支持</h1>
+    <p class="meta">开发者：James Wang</p>
+
+    <section class="card">
+      <p>佛经是一款用于佛经阅读、日课记录、书签和回向记录的 iOS 应用。当前版本的数据仅保存在设备本机。</p>
+    </section>
+
+    <h2>常见问题</h2>
+    <p><strong>数据会同步到云端吗？</strong></p>
+    <p>当前版本不会同步到云端。书签、阅读进度、日课进度、回向记录和阅读设置仅保存在本机。</p>
+
+    <p><strong>如何重置今日功课？</strong></p>
+    <p>进入“我的”页面，点击“重置今日功课”，并在确认弹窗中确认。</p>
+
+    <p><strong>如何调整字号或夜间模式？</strong></p>
+    <p>进入经文阅读页，点击右上角“AA”按钮，可以调整字号、拼音、注释、自动滚动和夜间模式。</p>
+
+    <h2>反馈与支持</h2>
+    <p>如果你遇到问题，反馈时请尽量包含以下信息：</p>
+    <ul>
+      <li>设备型号和 iOS 版本</li>
+      <li>应用版本号</li>
+      <li>问题发生的页面</li>
+      <li>可复现步骤或截图</li>
+    </ul>
+    <p>你可以通过 GitHub 用户 <a href="https://github.com/foxnet66">foxnet66</a> 联系开发者。若后续提供正式支持邮箱，本页面会同步更新。</p>
+
+    <h2>隐私政策</h2>
+    <p>请阅读 <a href="privacy.html">佛经隐私政策</a>。</p>
+
+    <footer>
+      <p>English summary: For support, include your device model, iOS version, app version, the affected screen, and reproduction steps. Contact the developer through GitHub user foxnet66.</p>
+    </footer>
+  </main>
+</body>
+</html>
