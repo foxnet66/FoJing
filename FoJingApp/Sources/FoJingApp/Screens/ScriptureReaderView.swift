@@ -380,6 +380,9 @@ struct ReaderSettingsSheet: View {
             .navigationTitle("阅读设置")
             .navigationBarTitleDisplayMode(.inline)
         }
+        .foregroundStyle(.primary)
+        .tint(AppTheme.bamboo)
+        .preferredColorScheme(nightMode ? .dark : nil)
     }
 }
 
