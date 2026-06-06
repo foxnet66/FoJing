@@ -64,12 +64,18 @@ struct ScriptureNote: Identifiable, Hashable, Codable {
     let text: String
 }
 
+enum ReaderAppearance: String, CaseIterable, Hashable, Codable {
+    case system
+    case light
+    case dark
+}
+
 struct ReaderSettings: Hashable, Codable {
     var fontSize = 22.0
     var useTraditional = false
     var showNotes = true
     var autoScroll = true
-    var nightMode = false
+    var appearance = ReaderAppearance.system
     var showPinyin = false
 
     enum CodingKeys: String, CodingKey {
@@ -77,7 +83,8 @@ struct ReaderSettings: Hashable, Codable {
         case useTraditional
         case showNotes
         case autoScroll
-        case nightMode
+        case appearance
+        case legacyNightMode = "nightMode"
         case showPinyin
     }
 
@@ -89,8 +96,23 @@ struct ReaderSettings: Hashable, Codable {
         useTraditional = try container.decodeIfPresent(Bool.self, forKey: .useTraditional) ?? false
         showNotes = try container.decodeIfPresent(Bool.self, forKey: .showNotes) ?? true
         autoScroll = try container.decodeIfPresent(Bool.self, forKey: .autoScroll) ?? true
-        nightMode = try container.decodeIfPresent(Bool.self, forKey: .nightMode) ?? false
+        if let storedAppearance = try container.decodeIfPresent(ReaderAppearance.self, forKey: .appearance) {
+            appearance = storedAppearance
+        } else {
+            let legacyNightMode = try container.decodeIfPresent(Bool.self, forKey: .legacyNightMode) ?? false
+            appearance = legacyNightMode ? .dark : .system
+        }
         showPinyin = try container.decodeIfPresent(Bool.self, forKey: .showPinyin) ?? false
+    }
+
+    func encode(to encoder: Encoder) throws {
+        var container = encoder.container(keyedBy: CodingKeys.self)
+        try container.encode(fontSize, forKey: .fontSize)
+        try container.encode(useTraditional, forKey: .useTraditional)
+        try container.encode(showNotes, forKey: .showNotes)
+        try container.encode(autoScroll, forKey: .autoScroll)
+        try container.encode(appearance, forKey: .appearance)
+        try container.encode(showPinyin, forKey: .showPinyin)
     }
 }
 

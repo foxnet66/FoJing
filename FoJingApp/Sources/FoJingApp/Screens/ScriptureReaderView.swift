@@ -207,7 +207,7 @@ struct ScriptureReaderView: View {
                 useTraditional: readerSettingBinding(\.useTraditional),
                 showNotes: readerSettingBinding(\.showNotes),
                 autoScroll: readerSettingBinding(\.autoScroll),
-                nightMode: readerSettingBinding(\.nightMode),
+                appearance: readerSettingBinding(\.appearance),
                 showPinyin: readerSettingBinding(\.showPinyin)
             )
             .presentationDetents([.medium])
@@ -250,7 +250,14 @@ struct ScriptureReaderView: View {
     }
 
     private var usesDarkReaderChrome: Bool {
-        appModel.readerSettings.nightMode || colorScheme == .dark
+        switch appModel.readerSettings.appearance {
+        case .system:
+            colorScheme == .dark
+        case .light:
+            false
+        case .dark:
+            true
+        }
     }
 
     private var readerChromeBackground: Color {
@@ -360,7 +367,7 @@ struct ReaderSettingsSheet: View {
     @Binding var useTraditional: Bool
     @Binding var showNotes: Bool
     @Binding var autoScroll: Bool
-    @Binding var nightMode: Bool
+    @Binding var appearance: ReaderAppearance
     @Binding var showPinyin: Bool
 
     var body: some View {
@@ -382,7 +389,14 @@ struct ReaderSettingsSheet: View {
                     Toggle("拼音", isOn: $showPinyin)
                     Toggle("注释", isOn: $showNotes)
                     Toggle("自动滚动", isOn: $autoScroll)
-                    Toggle("夜间模式", isOn: $nightMode)
+                }
+                Section("外观") {
+                    Picker("阅读外观", selection: $appearance) {
+                        Text("跟随系统").tag(ReaderAppearance.system)
+                        Text("日间").tag(ReaderAppearance.light)
+                        Text("夜间").tag(ReaderAppearance.dark)
+                    }
+                    .pickerStyle(.segmented)
                 }
             }
             .navigationTitle("阅读设置")
@@ -390,7 +404,18 @@ struct ReaderSettingsSheet: View {
         }
         .foregroundStyle(.primary)
         .tint(AppTheme.bamboo)
-        .preferredColorScheme(nightMode ? .dark : nil)
+        .preferredColorScheme(preferredColorScheme)
+    }
+
+    private var preferredColorScheme: ColorScheme? {
+        switch appearance {
+        case .system:
+            nil
+        case .light:
+            .light
+        case .dark:
+            .dark
+        }
     }
 }
 
