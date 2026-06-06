@@ -265,11 +265,19 @@ struct ScriptureReaderView: View {
         usesDarkReaderChrome ? Color(red: 0.64, green: 0.59, blue: 0.49) : AppTheme.secondaryInk
     }
 
+    private var miniPlayerBackground: Color {
+        usesDarkReaderChrome ? Color(red: 0.16, green: 0.155, blue: 0.13) : AppTheme.paper
+    }
+
+    private var miniPlayerDivider: Color {
+        usesDarkReaderChrome ? Color.white.opacity(0.12) : AppTheme.paperDeep
+    }
+
     private var miniPlayer: some View {
         HStack(spacing: usesCompactMiniPlayer ? 10 : 12) {
             Text(formatPlaybackTime(playbackSeconds))
                 .font(.caption.monospacedDigit())
-                .foregroundStyle(AppTheme.secondaryInk)
+                .foregroundStyle(secondaryReaderText)
                 .frame(width: 44, alignment: .leading)
                 .lineLimit(1)
                 .minimumScaleFactor(0.8)
@@ -329,7 +337,7 @@ struct ScriptureReaderView: View {
                 } label: {
                     Image(systemName: isLinkedPracticeComplete ? "checkmark.circle.fill" : "checkmark.circle")
                         .font(.title3)
-                        .foregroundStyle(isLinkedPracticeComplete ? AppTheme.secondaryInk : AppTheme.bamboo)
+                        .foregroundStyle(isLinkedPracticeComplete ? secondaryReaderText : AppTheme.bamboo)
                 }
                 .disabled(isLinkedPracticeComplete)
                 .accessibilityLabel(linkedPracticeCompletionLabel)
@@ -337,10 +345,10 @@ struct ScriptureReaderView: View {
         }
         .padding(.horizontal, 18)
         .padding(.vertical, 12)
-        .background(appModel.readerSettings.nightMode ? .regularMaterial : .thinMaterial)
+        .background(miniPlayerBackground)
         .overlay(alignment: .top) {
             Rectangle()
-                .fill(appModel.readerSettings.nightMode ? Color.white.opacity(0.12) : AppTheme.paperDeep)
+                .fill(miniPlayerDivider)
                 .frame(height: 1)
         }
         .sensoryFeedback(.success, trigger: didTapComplete)
