@@ -39,7 +39,7 @@ struct ProfileView: View {
             }
             Section {
                 VStack(alignment: .leading, spacing: 8) {
-                    Text("佛经")
+                    Text("净诵")
                         .font(.headline)
                     Text("版本 \(appVersionText) · 开发者 James Wang")
                         .font(.subheadline)
