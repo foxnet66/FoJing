@@ -74,7 +74,7 @@ struct TodayView: View {
                 }
                 Spacer()
                 VStack(spacing: 4) {
-                    Text("晚")
+                    Text("日")
                         .font(.title3.weight(.semibold))
                         .foregroundStyle(AppTheme.cinnabar)
                     Text("课")
