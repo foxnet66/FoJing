@@ -319,7 +319,7 @@ enum ScriptureCatalog {
     static let defaultPractices = [
         PracticeItem(id: "practice-heart", title: "心经", scriptureID: "heart-sutra", current: 0, target: 1, unit: "遍", kind: .reading),
         PracticeItem(id: "practice-great-compassion", title: "大悲咒", scriptureID: "great-compassion-mantra", current: 0, target: 3, unit: "遍", kind: .chanting),
-        PracticeItem(id: "practice-amitabha", title: "阿弥陀佛", scriptureID: nil, current: 36, target: 108, unit: "声", kind: .counter)
+        PracticeItem(id: "practice-amitabha", title: "阿弥陀佛", scriptureID: nil, current: 0, target: 108, unit: "声", kind: .counter)
     ]
 
     static let scriptures: [Scripture] = [
