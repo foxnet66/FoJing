@@ -129,7 +129,11 @@ final class AppModel {
     var scriptures = ScriptureCatalog.scriptures
     var practiceItems: [PracticeItem] = []
     var readerSettings = ReaderSettings() {
-        didSet { save() }
+        didSet {
+            if !isRestoringState {
+                save()
+            }
+        }
     }
     var bookmarkedScriptureIDs: Set<String> = []
     var readingProgress: [String: Int] = [:]
@@ -138,17 +142,24 @@ final class AppModel {
     var stateRevision = 0
 
     private let persistenceKey = "FoJing.AppModel.State.v1"
+    private var isRestoringState = false
     private var practiceDateKey = ""
 
     init() {
         load()
+        var needsSave = false
         if practiceDateKey != Self.todayPracticeKey {
             practiceItems = ScriptureCatalog.defaultPractices
             practiceDateKey = Self.todayPracticeKey
+            needsSave = true
         }
         if practiceItems.isEmpty {
             practiceItems = ScriptureCatalog.defaultPractices
             practiceDateKey = Self.todayPracticeKey
+            needsSave = true
+        }
+        if needsSave {
+            save()
         }
     }
 
@@ -265,6 +276,8 @@ final class AppModel {
 
     private func load() {
         guard let data = UserDefaults.standard.data(forKey: persistenceKey) else { return }
+        isRestoringState = true
+        defer { isRestoringState = false }
         do {
             let state = try JSONDecoder().decode(PersistedState.self, from: data)
             practiceItems = state.practiceItems
