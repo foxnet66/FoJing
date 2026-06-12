@@ -37,6 +37,17 @@
          </BuildableReference>
       </MacroExpansion>
       <Testables>
+         <TestableReference
+            skipped = "NO"
+            parallelizable = "NO">
+            <BuildableReference
+               BuildableIdentifier = "primary"
+               BlueprintIdentifier = "CC4D57322FFC9FD836D66904"
+               BuildableName = "FoJingAppTests.xctest"
+               BlueprintName = "FoJingAppTests"
+               ReferencedContainer = "container:FoJing.xcodeproj">
+            </BuildableReference>
+         </TestableReference>
       </Testables>
    </TestAction>
    <LaunchAction

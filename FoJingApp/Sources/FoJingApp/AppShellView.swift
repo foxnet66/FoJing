@@ -9,6 +9,7 @@ enum AppTab: Hashable {
 
 struct AppShellView: View {
     @Environment(\.colorScheme) private var colorScheme
+    @Environment(\.scenePhase) private var scenePhase
 
     let appModel: AppModel
     @State private var selectedTab: AppTab = .today
@@ -51,6 +52,11 @@ struct AppShellView: View {
         .toolbarBackground(AppTheme.paper, for: .tabBar)
         .toolbarBackground(.visible, for: .tabBar)
         .toolbarColorScheme(colorScheme, for: .tabBar)
+        .onChange(of: scenePhase) { _, newPhase in
+            if newPhase == .active {
+                appModel.refreshDailyPracticeIfNeeded()
+            }
+        }
     }
 }
 

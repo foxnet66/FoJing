@@ -142,25 +142,34 @@ final class AppModel {
     var stateRevision = 0
 
     private let persistenceKey = "FoJing.AppModel.State.v1"
+    private let userDefaults: UserDefaults
+    private let dateProvider: () -> Date
     private var isRestoringState = false
     private var practiceDateKey = ""
 
-    init() {
+    init(userDefaults: UserDefaults = .standard, dateProvider: @escaping () -> Date = Date.init) {
+        self.userDefaults = userDefaults
+        self.dateProvider = dateProvider
         load()
-        var needsSave = false
-        if practiceDateKey != Self.todayPracticeKey {
+        refreshDailyPracticeIfNeeded()
+    }
+
+    @discardableResult
+    func refreshDailyPracticeIfNeeded() -> Bool {
+        let todayPracticeKey = Self.practiceKey(for: dateProvider())
+        if practiceDateKey != todayPracticeKey {
             practiceItems = ScriptureCatalog.defaultPractices
-            practiceDateKey = Self.todayPracticeKey
-            needsSave = true
+            practiceDateKey = todayPracticeKey
+            save()
+            return true
         }
         if practiceItems.isEmpty {
             practiceItems = ScriptureCatalog.defaultPractices
-            practiceDateKey = Self.todayPracticeKey
-            needsSave = true
-        }
-        if needsSave {
+            practiceDateKey = todayPracticeKey
             save()
+            return true
         }
+        return false
     }
 
     var completedPracticeCount: Int {
@@ -270,12 +279,12 @@ final class AppModel {
 
     func resetTodayPractice() {
         practiceItems = ScriptureCatalog.defaultPractices
-        practiceDateKey = Self.todayPracticeKey
+        practiceDateKey = Self.practiceKey(for: dateProvider())
         save()
     }
 
     private func load() {
-        guard let data = UserDefaults.standard.data(forKey: persistenceKey) else { return }
+        guard let data = userDefaults.data(forKey: persistenceKey) else { return }
         isRestoringState = true
         defer { isRestoringState = false }
         do {
@@ -286,10 +295,10 @@ final class AppModel {
             readingProgress = state.readingProgress
             recentScriptureID = state.recentScriptureID
             dedicationRecords = state.dedicationRecords
-            practiceDateKey = state.practiceDateKey ?? Self.todayPracticeKey
+            practiceDateKey = state.practiceDateKey ?? Self.practiceKey(for: dateProvider())
         } catch {
             practiceItems = ScriptureCatalog.defaultPractices
-            practiceDateKey = Self.todayPracticeKey
+            practiceDateKey = Self.practiceKey(for: dateProvider())
         }
     }
 
@@ -305,16 +314,16 @@ final class AppModel {
             practiceDateKey: practiceDateKey
         )
         guard let data = try? JSONEncoder().encode(state) else { return }
-        UserDefaults.standard.set(data, forKey: persistenceKey)
+        userDefaults.set(data, forKey: persistenceKey)
     }
 
-    private static var todayPracticeKey: String {
+    private static func practiceKey(for date: Date) -> String {
         let formatter = DateFormatter()
         formatter.calendar = Calendar(identifier: .gregorian)
         formatter.locale = Locale(identifier: "en_US_POSIX")
         formatter.timeZone = .current
         formatter.dateFormat = "yyyy-MM-dd"
-        return formatter.string(from: Date())
+        return formatter.string(from: date)
     }
 }
 

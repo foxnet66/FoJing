@@ -10,6 +10,7 @@
 		29E445BB9ED2069B8DED10E5 /* AppShellView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 4461FD7A485216B788FC8F8E /* AppShellView.swift */; };
 		47C5878C713F2DC770B49969 /* FoJingApp.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9010F2F7BFD56F2E49635CC5 /* FoJingApp.swift */; };
 		60C1584584CB4D248F31BBF5 /* ScriptureLibraryView.swift in Sources */ = {isa = PBXBuildFile; fileRef = B09ABDF773FD35D0FF94425F /* ScriptureLibraryView.swift */; };
+		6B32E79AED1F5ACAEA47C246 /* AppModelDailyPracticeTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 951099BF3AE8E1CC0C8D40AF /* AppModelDailyPracticeTests.swift */; };
 		70CA9F4D8DBC752C4C62F511 /* PrototypeData.swift in Sources */ = {isa = PBXBuildFile; fileRef = 64520B4537344BAAAFDCCAE1 /* PrototypeData.swift */; };
 		74E752429F24D1F72AADFDBF /* ScriptureReaderView.swift in Sources */ = {isa = PBXBuildFile; fileRef = CE91E6EFF016DF3CED76D038 /* ScriptureReaderView.swift */; };
 		852E8E7F9AA0596FDBFBA243 /* heart-sutra.json in Resources */ = {isa = PBXBuildFile; fileRef = A6CDC0C946E312D80A3B97A4 /* heart-sutra.json */; };
@@ -22,6 +23,16 @@
 		F5DBD088F643F69B9145B6C9 /* TodayView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2E57CC07CCF62D8B318CB110 /* TodayView.swift */; };
 /* End PBXBuildFile section */
 
+/* Begin PBXContainerItemProxy section */
+		6BD04BA00672234A28BB1EA2 /* PBXContainerItemProxy */ = {
+			isa = PBXContainerItemProxy;
+			containerPortal = 81C2D3991A5CAA0F6704E228 /* Project object */;
+			proxyType = 1;
+			remoteGlobalIDString = 6FA24500DA8952E553046B93;
+			remoteInfo = FoJingApp;
+		};
+/* End PBXContainerItemProxy section */
+
 /* Begin PBXFileReference section */
 		157F31E8590C2DEA3C9705BD /* Assets.xcassets */ = {isa = PBXFileReference; lastKnownFileType = folder.assetcatalog; path = Assets.xcassets; sourceTree = "<group>"; };
 		2E57CC07CCF62D8B318CB110 /* TodayView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TodayView.swift; sourceTree = "<group>"; };
@@ -32,7 +43,9 @@
 		64520B4537344BAAAFDCCAE1 /* PrototypeData.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PrototypeData.swift; sourceTree = "<group>"; };
 		89C2286784380140EDE175C4 /* ChantPracticeView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ChantPracticeView.swift; sourceTree = "<group>"; };
 		9010F2F7BFD56F2E49635CC5 /* FoJingApp.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = FoJingApp.swift; sourceTree = "<group>"; };
+		951099BF3AE8E1CC0C8D40AF /* AppModelDailyPracticeTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AppModelDailyPracticeTests.swift; sourceTree = "<group>"; };
 		A6CDC0C946E312D80A3B97A4 /* heart-sutra.json */ = {isa = PBXFileReference; lastKnownFileType = text.json; path = "heart-sutra.json"; sourceTree = "<group>"; };
+		AE74682865C40D4DFB5B453A /* FoJingAppTests.xctest */ = {isa = PBXFileReference; includeInIndex = 0; lastKnownFileType = wrapper.cfbundle; path = FoJingAppTests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
 		B09ABDF773FD35D0FF94425F /* ScriptureLibraryView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ScriptureLibraryView.swift; sourceTree = "<group>"; };
 		B257948A6DEFE31F29A5B145 /* AppTheme.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AppTheme.swift; sourceTree = "<group>"; };
 		B976214CD5ED9490A1B69E0A /* DedicationView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DedicationView.swift; sourceTree = "<group>"; };
@@ -47,6 +60,14 @@
 				A6CDC0C946E312D80A3B97A4 /* heart-sutra.json */,
 			);
 			path = Scriptures;
+			sourceTree = "<group>";
+		};
+		0C1CACC6D76A823E83076764 /* FoJingAppTests */ = {
+			isa = PBXGroup;
+			children = (
+				951099BF3AE8E1CC0C8D40AF /* AppModelDailyPracticeTests.swift */,
+			);
+			path = FoJingAppTests;
 			sourceTree = "<group>";
 		};
 		1B817797854D882054961D3E /* Resources */ = {
@@ -97,6 +118,7 @@
 			isa = PBXGroup;
 			children = (
 				6EC7B26AB61F98C1F4535358 /* FoJingApp */,
+				0C1CACC6D76A823E83076764 /* FoJingAppTests */,
 				1B817797854D882054961D3E /* Resources */,
 				EB7D33D232E84E48956B8612 /* Products */,
 			);
@@ -106,6 +128,7 @@
 			isa = PBXGroup;
 			children = (
 				51532FB937586E7F5CEF6414 /* FoJingApp.app */,
+				AE74682865C40D4DFB5B453A /* FoJingAppTests.xctest */,
 			);
 			name = Products;
 			sourceTree = "<group>";
@@ -139,6 +162,24 @@
 			productReference = 51532FB937586E7F5CEF6414 /* FoJingApp.app */;
 			productType = "com.apple.product-type.application";
 		};
+		CC4D57322FFC9FD836D66904 /* FoJingAppTests */ = {
+			isa = PBXNativeTarget;
+			buildConfigurationList = AB4D85AF9C372B6E6A8B4DEA /* Build configuration list for PBXNativeTarget "FoJingAppTests" */;
+			buildPhases = (
+				D1CFFF26171A4105786AD3CB /* Sources */,
+			);
+			buildRules = (
+			);
+			dependencies = (
+				4170B42DA53916B2F804CC0D /* PBXTargetDependency */,
+			);
+			name = FoJingAppTests;
+			packageProductDependencies = (
+			);
+			productName = FoJingAppTests;
+			productReference = AE74682865C40D4DFB5B453A /* FoJingAppTests.xctest */;
+			productType = "com.apple.product-type.bundle.unit-test";
+		};
 /* End PBXNativeTarget section */
 
 /* Begin PBXProject section */
@@ -149,6 +190,9 @@
 				LastUpgradeCheck = 1430;
 				TargetAttributes = {
 					6FA24500DA8952E553046B93 = {
+						DevelopmentTeam = 468SHW5TLW;
+					};
+					CC4D57322FFC9FD836D66904 = {
 						DevelopmentTeam = 468SHW5TLW;
 					};
 				};
@@ -168,6 +212,7 @@
 			projectRoot = "";
 			targets = (
 				6FA24500DA8952E553046B93 /* FoJingApp */,
+				CC4D57322FFC9FD836D66904 /* FoJingAppTests */,
 			);
 		};
 /* End PBXProject section */
@@ -203,7 +248,23 @@
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
+		D1CFFF26171A4105786AD3CB /* Sources */ = {
+			isa = PBXSourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				6B32E79AED1F5ACAEA47C246 /* AppModelDailyPracticeTests.swift in Sources */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
 /* End PBXSourcesBuildPhase section */
+
+/* Begin PBXTargetDependency section */
+		4170B42DA53916B2F804CC0D /* PBXTargetDependency */ = {
+			isa = PBXTargetDependency;
+			target = 6FA24500DA8952E553046B93 /* FoJingApp */;
+			targetProxy = 6BD04BA00672234A28BB1EA2 /* PBXContainerItemProxy */;
+		};
+/* End PBXTargetDependency section */
 
 /* Begin XCBuildConfiguration section */
 		1FC5E99EC69F1BCF8E85B773 /* Debug */ = {
@@ -270,12 +331,29 @@
 			};
 			name = Debug;
 		};
+		2AE5FAC075E5A29DBC97EE41 /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				BUNDLE_LOADER = "$(TEST_HOST)";
+				GENERATE_INFOPLIST_FILE = YES;
+				LD_RUNPATH_SEARCH_PATHS = (
+					"$(inherited)",
+					"@executable_path/Frameworks",
+					"@loader_path/Frameworks",
+				);
+				PRODUCT_BUNDLE_IDENTIFIER = com.jameswang.fojing.tests;
+				SDKROOT = iphoneos;
+				TARGETED_DEVICE_FAMILY = "1,2";
+				TEST_HOST = "$(BUILT_PRODUCTS_DIR)/FoJing.app/FoJing";
+			};
+			name = Release;
+		};
 		32D199DA7CA7B9D656850803 /* Debug */ = {
 			isa = XCBuildConfiguration;
 			buildSettings = {
 				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
 				CODE_SIGN_IDENTITY = "iPhone Developer";
-				CURRENT_PROJECT_VERSION = 2;
+				CURRENT_PROJECT_VERSION = 3;
 				GENERATE_INFOPLIST_FILE = YES;
 				INFOPLIST_KEY_CFBundleDisplayName = "净诵";
 				INFOPLIST_KEY_ITSAppUsesNonExemptEncryption = NO;
@@ -287,11 +365,28 @@
 					"$(inherited)",
 					"@executable_path/Frameworks",
 				);
-				MARKETING_VERSION = 1.0;
+				MARKETING_VERSION = 1.0.1;
 				PRODUCT_BUNDLE_IDENTIFIER = com.jameswang.fojing;
 				PRODUCT_NAME = FoJing;
 				SDKROOT = iphoneos;
 				TARGETED_DEVICE_FAMILY = "1,2";
+			};
+			name = Debug;
+		};
+		476D0F351AC1B009D1974F71 /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				BUNDLE_LOADER = "$(TEST_HOST)";
+				GENERATE_INFOPLIST_FILE = YES;
+				LD_RUNPATH_SEARCH_PATHS = (
+					"$(inherited)",
+					"@executable_path/Frameworks",
+					"@loader_path/Frameworks",
+				);
+				PRODUCT_BUNDLE_IDENTIFIER = com.jameswang.fojing.tests;
+				SDKROOT = iphoneos;
+				TARGETED_DEVICE_FAMILY = "1,2";
+				TEST_HOST = "$(BUILT_PRODUCTS_DIR)/FoJing.app/FoJing";
 			};
 			name = Debug;
 		};
@@ -357,7 +452,7 @@
 			buildSettings = {
 				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
 				CODE_SIGN_IDENTITY = "iPhone Developer";
-				CURRENT_PROJECT_VERSION = 2;
+				CURRENT_PROJECT_VERSION = 3;
 				GENERATE_INFOPLIST_FILE = YES;
 				INFOPLIST_KEY_CFBundleDisplayName = "净诵";
 				INFOPLIST_KEY_ITSAppUsesNonExemptEncryption = NO;
@@ -369,7 +464,7 @@
 					"$(inherited)",
 					"@executable_path/Frameworks",
 				);
-				MARKETING_VERSION = 1.0;
+				MARKETING_VERSION = 1.0.1;
 				PRODUCT_BUNDLE_IDENTIFIER = com.jameswang.fojing;
 				PRODUCT_NAME = FoJing;
 				SDKROOT = iphoneos;
@@ -394,6 +489,15 @@
 			buildConfigurations = (
 				1FC5E99EC69F1BCF8E85B773 /* Debug */,
 				65D490372A1C72554FAC7F7B /* Release */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Debug;
+		};
+		AB4D85AF9C372B6E6A8B4DEA /* Build configuration list for PBXNativeTarget "FoJingAppTests" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				476D0F351AC1B009D1974F71 /* Debug */,
+				2AE5FAC075E5A29DBC97EE41 /* Release */,
 			);
 			defaultConfigurationIsVisible = 0;
 			defaultConfigurationName = Debug;
