@@ -94,6 +94,8 @@ struct ProfileView: View {
         let subject = "净诵反馈"
         let body = """
         App 版本：\(appVersionText)
+        iOS 版本：\(UIDevice.current.systemVersion)
+        设备：\(UIDevice.current.model)
         问题页面：
         问题描述：
         复现步骤：
