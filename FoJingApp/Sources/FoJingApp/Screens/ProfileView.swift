@@ -46,12 +46,12 @@ struct ProfileView: View {
                 .profileListRowStyle()
             }
             Section("支持") {
-                Link(destination: supportURL) {
+                Link(destination: feedbackMailURL) {
                     HStack {
                         Label("反馈与支持", systemImage: "questionmark.bubble")
                             .foregroundStyle(AppTheme.ink)
                         Spacer()
-                        Text("GitHub")
+                        Text("邮件")
                             .font(.subheadline)
                             .foregroundStyle(AppTheme.secondaryInk)
                         Image(systemName: "arrow.up.right")
@@ -90,8 +90,22 @@ struct ProfileView: View {
         }
     }
 
-    private var supportURL: URL {
-        URL(string: "https://github.com/foxnet66")!
+    private var feedbackMailURL: URL {
+        let subject = "净诵反馈"
+        let body = """
+        App 版本：\(appVersionText)
+        问题页面：
+        问题描述：
+        复现步骤：
+        """
+        var components = URLComponents()
+        components.scheme = "mailto"
+        components.path = "foxnet2000@gmail.com"
+        components.queryItems = [
+            URLQueryItem(name: "subject", value: subject),
+            URLQueryItem(name: "body", value: body)
+        ]
+        return components.url ?? URL(string: "mailto:foxnet2000@gmail.com")!
     }
 
     private func profileRow(title: String, detail: String, icon: String) -> some View {
