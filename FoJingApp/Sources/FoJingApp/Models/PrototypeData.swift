@@ -124,6 +124,13 @@ struct DedicationRecord: Identifiable, Hashable, Codable {
     let completedItems: [String]
 }
 
+struct DailyPracticeRecord: Identifiable, Hashable, Codable {
+    let id: String
+    let date: Date
+    let completedAt: Date
+    let completedItems: [String]
+}
+
 @Observable
 final class AppModel {
     var scriptures = ScriptureCatalog.scriptures
@@ -139,6 +146,7 @@ final class AppModel {
     var readingProgress: [String: Int] = [:]
     var recentScriptureID: String?
     var dedicationRecords: [DedicationRecord] = []
+    var dailyPracticeRecords: [DailyPracticeRecord] = []
     var stateRevision = 0
 
     private let persistenceKey = "FoJing.AppModel.State.v1"
@@ -151,7 +159,10 @@ final class AppModel {
         self.userDefaults = userDefaults
         self.dateProvider = dateProvider
         load()
-        refreshDailyPracticeIfNeeded()
+        let didRefreshDailyPractice = refreshDailyPracticeIfNeeded()
+        if !didRefreshDailyPractice, recordDailyPracticeCompletionIfNeeded() {
+            save()
+        }
     }
 
     @discardableResult
@@ -230,6 +241,7 @@ final class AppModel {
         guard let index = items.firstIndex(where: { $0.id == id }) else { return }
         items[index].current = items[index].target
         practiceItems = items
+        recordDailyPracticeCompletionIfNeeded()
         save()
     }
 
@@ -238,6 +250,7 @@ final class AppModel {
         guard let index = items.firstIndex(where: { $0.id == id }) else { return }
         items[index].current = min(items[index].current + 1, items[index].target)
         practiceItems = items
+        recordDailyPracticeCompletionIfNeeded()
         save()
     }
 
@@ -295,6 +308,7 @@ final class AppModel {
             readingProgress = state.readingProgress
             recentScriptureID = state.recentScriptureID
             dedicationRecords = state.dedicationRecords
+            dailyPracticeRecords = state.dailyPracticeRecords ?? []
             practiceDateKey = state.practiceDateKey ?? Self.practiceKey(for: dateProvider())
         } catch {
             practiceItems = ScriptureCatalog.defaultPractices
@@ -311,6 +325,7 @@ final class AppModel {
             readingProgress: readingProgress,
             recentScriptureID: recentScriptureID,
             dedicationRecords: dedicationRecords,
+            dailyPracticeRecords: dailyPracticeRecords,
             practiceDateKey: practiceDateKey
         )
         guard let data = try? JSONEncoder().encode(state) else { return }
@@ -325,6 +340,28 @@ final class AppModel {
         formatter.dateFormat = "yyyy-MM-dd"
         return formatter.string(from: date)
     }
+
+    @discardableResult
+    private func recordDailyPracticeCompletionIfNeeded() -> Bool {
+        guard !practiceItems.isEmpty, firstIncompletePractice == nil else {
+            return false
+        }
+
+        let now = dateProvider()
+        let todayPracticeKey = Self.practiceKey(for: now)
+        guard !dailyPracticeRecords.contains(where: { $0.id == todayPracticeKey }) else {
+            return false
+        }
+
+        let record = DailyPracticeRecord(
+            id: todayPracticeKey,
+            date: now,
+            completedAt: now,
+            completedItems: practiceItems.map { "\($0.title) \($0.target) \($0.unit)" }
+        )
+        dailyPracticeRecords = [record] + dailyPracticeRecords
+        return true
+    }
 }
 
 private struct PersistedState: Codable {
@@ -334,6 +371,7 @@ private struct PersistedState: Codable {
     let readingProgress: [String: Int]
     let recentScriptureID: String?
     let dedicationRecords: [DedicationRecord]
+    let dailyPracticeRecords: [DailyPracticeRecord]?
     let practiceDateKey: String?
 }
 

@@ -52,6 +52,26 @@ final class AppModelDailyPracticeTests: XCTestCase {
         XCTAssertEqual(relaunched.practiceItem(id: "practice-amitabha").current, 0)
     }
 
+    func testCompletingDailyPracticeRecordsHistoryOnceAndPersistsIt() {
+        let today = makeDate(year: 2026, month: 6, day: 12)
+        let appModel = AppModel(userDefaults: userDefaults, dateProvider: { today })
+
+        appModel.markPracticeComplete(id: "practice-heart")
+        appModel.markPracticeComplete(id: "practice-great-compassion")
+        for _ in 0..<108 {
+            appModel.incrementPractice(id: "practice-amitabha")
+        }
+        appModel.incrementPractice(id: "practice-amitabha")
+
+        XCTAssertEqual(appModel.dailyPracticeRecords.count, 1)
+        XCTAssertEqual(appModel.dailyPracticeRecords[0].id, "2026-06-12")
+        XCTAssertEqual(appModel.dailyPracticeRecords[0].completedItems.count, 3)
+
+        let relaunched = AppModel(userDefaults: userDefaults, dateProvider: { today })
+        XCTAssertEqual(relaunched.dailyPracticeRecords.count, 1)
+        XCTAssertEqual(relaunched.dailyPracticeRecords[0].id, "2026-06-12")
+    }
+
     private func makeDate(year: Int, month: Int, day: Int) -> Date {
         var components = DateComponents()
         components.calendar = Calendar(identifier: .gregorian)

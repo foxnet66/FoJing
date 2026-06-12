@@ -29,11 +29,35 @@ struct ProfileView: View {
                     }
                 }
             }
+            if !appModel.dailyPracticeRecords.isEmpty {
+                Section("最近日课") {
+                    ForEach(appModel.dailyPracticeRecords.prefix(5)) { record in
+                        dailyPracticeRecordRow(record)
+                            .profileListRowStyle()
+                    }
+                }
+            }
             Section("操作") {
                 Button(role: .destructive) {
                     showsResetPracticeConfirmation = true
                 } label: {
                     Label("重置今日功课", systemImage: "arrow.counterclockwise")
+                }
+                .profileListRowStyle()
+            }
+            Section("支持") {
+                Link(destination: supportURL) {
+                    HStack {
+                        Label("反馈与支持", systemImage: "questionmark.bubble")
+                            .foregroundStyle(AppTheme.ink)
+                        Spacer()
+                        Text("GitHub")
+                            .font(.subheadline)
+                            .foregroundStyle(AppTheme.secondaryInk)
+                        Image(systemName: "arrow.up.right")
+                            .font(.caption.weight(.semibold))
+                            .foregroundStyle(AppTheme.secondaryInk)
+                    }
                 }
                 .profileListRowStyle()
             }
@@ -64,6 +88,10 @@ struct ProfileView: View {
         } message: {
             Text("仅重置今日功课进度，不会删除书签或回向记录。")
         }
+    }
+
+    private var supportURL: URL {
+        URL(string: "https://github.com/foxnet66")!
     }
 
     private func profileRow(title: String, detail: String, icon: String) -> some View {
@@ -97,6 +125,25 @@ struct ProfileView: View {
             Text(record.text)
                 .font(.caption)
                 .foregroundStyle(AppTheme.secondaryInk)
+                .lineLimit(2)
+        }
+        .padding(.vertical, 4)
+    }
+
+    private func dailyPracticeRecordRow(_ record: DailyPracticeRecord) -> some View {
+        VStack(alignment: .leading, spacing: 7) {
+            HStack(alignment: .firstTextBaseline) {
+                Text("日课已完成")
+                    .font(.body.weight(.medium))
+                    .foregroundStyle(AppTheme.ink)
+                Spacer()
+                Text(record.completedAt, format: .dateTime.month().day().hour().minute())
+                    .font(.caption)
+                    .foregroundStyle(AppTheme.secondaryInk)
+            }
+            Text(record.completedItems.joined(separator: "、"))
+                .font(.caption)
+                .foregroundStyle(AppTheme.bamboo)
                 .lineLimit(2)
         }
         .padding(.vertical, 4)
