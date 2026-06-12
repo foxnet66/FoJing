@@ -16,7 +16,7 @@ struct ProfileView: View {
                     .profileListRowStyle()
                 profileRow(title: "阅读设置", detail: "\(Int(appModel.readerSettings.fontSize)) pt", icon: "textformat.size")
                     .profileListRowStyle()
-                profileRow(title: "文本来源", detail: "待接入可追溯版本", icon: "checkmark.seal")
+                profileRow(title: "文本来源", detail: scriptureSourceStatusText, icon: "checkmark.seal")
                     .profileListRowStyle()
                 profileRow(title: "隐私说明", detail: "当前仅本机保存", icon: "hand.raised")
                     .profileListRowStyle()
@@ -170,6 +170,17 @@ struct ProfileView: View {
             return version
         }
         return "\(version) (\(build))"
+    }
+
+    private var scriptureSourceStatusText: String {
+        let availableCount = appModel.scriptures.filter { !$0.isPrototypeContent }.count
+        let pendingCount = appModel.scriptures.count - availableCount
+
+        if pendingCount == 0 {
+            return "\(availableCount) 部正式"
+        }
+
+        return "\(availableCount) 部正式，\(pendingCount) 部待接入"
     }
 }
 

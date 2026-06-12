@@ -4,9 +4,9 @@ struct ScriptureLibraryView: View {
     let appModel: AppModel
 
     @State private var query = ""
-    @State private var selectedCategory = "常诵经典"
+    @State private var selectedCategory = "日课"
 
-    private let categories = ["常诵经典", "净土", "般若", "观音", "地藏", "药师", "咒语"]
+    private let categories = ["日课", "常诵经典", "净土", "般若", "观音", "地藏", "药师", "咒语"]
 
     private var trimmedQuery: String {
         query.trimmingCharacters(in: .whitespacesAndNewlines)
@@ -19,6 +19,9 @@ struct ScriptureLibraryView: View {
     private var visibleScriptures: [Scripture] {
         appModel.scriptures.filter { scripture in
             if trimmedQuery.isEmpty {
+                if selectedCategory == "日课" {
+                    return dailyPracticeScriptureIDs.contains(scripture.id)
+                }
                 return scripture.category == selectedCategory
             }
 
@@ -27,6 +30,10 @@ struct ScriptureLibraryView: View {
                 scripture.translator.localizedStandardContains(trimmedQuery) ||
                 scripture.category.localizedStandardContains(trimmedQuery)
         }
+    }
+
+    private var dailyPracticeScriptureIDs: Set<String> {
+        Set(appModel.practiceItems.compactMap(\.scriptureID))
     }
 
     var body: some View {
