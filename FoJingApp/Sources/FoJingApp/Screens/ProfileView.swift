@@ -30,10 +30,27 @@ struct ProfileView: View {
                 }
             }
             if !appModel.dailyPracticeRecords.isEmpty {
+                Section("日课记录") {
+                    profileRow(title: "本月完成", detail: "\(monthlyPracticeCompletionCount) 天", icon: "calendar")
+                        .profileListRowStyle()
+                    profileRow(title: "最近连续", detail: "\(recentConsecutivePracticeDays) 天", icon: "leaf")
+                        .profileListRowStyle()
+                    NavigationLink {
+                        DailyPracticeHistoryView(appModel: appModel)
+                    } label: {
+                        Label("查看全部日课", systemImage: "list.bullet.rectangle")
+                            .foregroundStyle(AppTheme.ink)
+                    }
+                    .profileListRowStyle()
+                }
                 Section("最近日课") {
                     ForEach(appModel.dailyPracticeRecords.prefix(5)) { record in
-                        dailyPracticeRecordRow(record)
-                            .profileListRowStyle()
+                        NavigationLink {
+                            DailyPracticeRecordDetailView(appModel: appModel, record: record)
+                        } label: {
+                            dailyPracticeRecordRow(record)
+                        }
+                        .profileListRowStyle()
                     }
                 }
             }
@@ -183,6 +200,190 @@ struct ProfileView: View {
         }
 
         return "\(availableCount) 部正式，\(pendingCount) 部待接入"
+    }
+
+    private var monthlyPracticeCompletionCount: Int {
+        let calendar = Calendar.current
+        let now = Date()
+        return Set(appModel.dailyPracticeRecords.compactMap { record -> Date? in
+            guard calendar.isDate(record.date, equalTo: now, toGranularity: .month) else {
+                return nil
+            }
+            return calendar.startOfDay(for: record.date)
+        }).count
+    }
+
+    private var recentConsecutivePracticeDays: Int {
+        let calendar = Calendar.current
+        let completedDays = Set(appModel.dailyPracticeRecords.map { calendar.startOfDay(for: $0.date) })
+        guard var currentDay = completedDays.max() else {
+            return 0
+        }
+
+        var count = 0
+        while completedDays.contains(currentDay) {
+            count += 1
+            guard let previousDay = calendar.date(byAdding: .day, value: -1, to: currentDay) else {
+                break
+            }
+            currentDay = previousDay
+        }
+        return count
+    }
+}
+
+struct DailyPracticeHistoryView: View {
+    let appModel: AppModel
+
+    private var records: [DailyPracticeRecord] {
+        appModel.dailyPracticeRecords.sorted { $0.date > $1.date }
+    }
+
+    private var monthlyPracticeCompletionCount: Int {
+        let calendar = Calendar.current
+        let now = Date()
+        return Set(records.compactMap { record -> Date? in
+            guard calendar.isDate(record.date, equalTo: now, toGranularity: .month) else {
+                return nil
+            }
+            return calendar.startOfDay(for: record.date)
+        }).count
+    }
+
+    private var recentConsecutivePracticeDays: Int {
+        let calendar = Calendar.current
+        let completedDays = Set(records.map { calendar.startOfDay(for: $0.date) })
+        guard var currentDay = completedDays.max() else {
+            return 0
+        }
+
+        var count = 0
+        while completedDays.contains(currentDay) {
+            count += 1
+            guard let previousDay = calendar.date(byAdding: .day, value: -1, to: currentDay) else {
+                break
+            }
+            currentDay = previousDay
+        }
+        return count
+    }
+
+    var body: some View {
+        List {
+            Section("愿力相续") {
+                historySummaryRow(title: "本月完成", value: "\(monthlyPracticeCompletionCount) 天", icon: "calendar")
+                historySummaryRow(title: "最近连续", value: "\(recentConsecutivePracticeDays) 天", icon: "leaf")
+            }
+
+            Section("全部日课") {
+                ForEach(records) { record in
+                    NavigationLink {
+                        DailyPracticeRecordDetailView(appModel: appModel, record: record)
+                    } label: {
+                        dailyPracticeRecordRow(record)
+                    }
+                    .profileListRowStyle()
+                }
+            }
+        }
+        .scrollContentBackground(.hidden)
+        .navigationTitle("日课记录")
+        .navigationBarTitleDisplayMode(.inline)
+        .sutraPageBackground()
+    }
+
+    private func historySummaryRow(title: String, value: String, icon: String) -> some View {
+        HStack {
+            Label(title, systemImage: icon)
+                .foregroundStyle(AppTheme.ink)
+            Spacer()
+            Text(value)
+                .font(.subheadline.monospacedDigit())
+                .foregroundStyle(AppTheme.secondaryInk)
+        }
+        .profileListRowStyle()
+    }
+
+    private func dailyPracticeRecordRow(_ record: DailyPracticeRecord) -> some View {
+        VStack(alignment: .leading, spacing: 7) {
+            HStack(alignment: .firstTextBaseline) {
+                Text(record.date, format: .dateTime.year().month().day().weekday())
+                    .font(.body.weight(.medium))
+                    .foregroundStyle(AppTheme.ink)
+                Spacer()
+                Text(record.completedAt, format: .dateTime.hour().minute())
+                    .font(.caption)
+                    .foregroundStyle(AppTheme.secondaryInk)
+            }
+            Text(record.completedItems.joined(separator: "、"))
+                .font(.caption)
+                .foregroundStyle(AppTheme.bamboo)
+                .lineLimit(2)
+        }
+        .padding(.vertical, 4)
+    }
+}
+
+struct DailyPracticeRecordDetailView: View {
+    let appModel: AppModel
+    let record: DailyPracticeRecord
+
+    private var matchingDedications: [DedicationRecord] {
+        appModel.dedicationRecords.filter { Calendar.current.isDate($0.date, inSameDayAs: record.date) }
+    }
+
+    var body: some View {
+        List {
+            Section("完成时间") {
+                detailRow(title: "日期", value: record.date.formatted(.dateTime.year().month().day().weekday()))
+                detailRow(title: "时间", value: record.completedAt.formatted(.dateTime.hour().minute()))
+            }
+
+            Section("完成项目") {
+                ForEach(record.completedItems, id: \.self) { item in
+                    Label(item, systemImage: "checkmark.circle.fill")
+                        .foregroundStyle(AppTheme.ink)
+                        .profileListRowStyle()
+                }
+            }
+
+            Section("当日回向") {
+                if matchingDedications.isEmpty {
+                    Text("当日未保存回向")
+                        .foregroundStyle(AppTheme.secondaryInk)
+                        .profileListRowStyle()
+                } else {
+                    ForEach(matchingDedications) { dedication in
+                        VStack(alignment: .leading, spacing: 7) {
+                            Text(dedication.recipient)
+                                .font(.body.weight(.medium))
+                                .foregroundStyle(AppTheme.ink)
+                            Text(dedication.text)
+                                .font(.caption)
+                                .foregroundStyle(AppTheme.secondaryInk)
+                                .lineLimit(4)
+                        }
+                        .padding(.vertical, 4)
+                        .profileListRowStyle()
+                    }
+                }
+            }
+        }
+        .scrollContentBackground(.hidden)
+        .navigationTitle("日课详情")
+        .navigationBarTitleDisplayMode(.inline)
+        .sutraPageBackground()
+    }
+
+    private func detailRow(title: String, value: String) -> some View {
+        HStack {
+            Text(title)
+                .foregroundStyle(AppTheme.ink)
+            Spacer()
+            Text(value)
+                .foregroundStyle(AppTheme.secondaryInk)
+        }
+        .profileListRowStyle()
     }
 }
 
