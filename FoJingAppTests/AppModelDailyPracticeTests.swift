@@ -72,6 +72,17 @@ final class AppModelDailyPracticeTests: XCTestCase {
         XCTAssertEqual(relaunched.dailyPracticeRecords[0].id, "2026-06-12")
     }
 
+    func testAmitabhaSutraUsesFullResourceContent() {
+        let appModel = AppModel(userDefaults: userDefaults)
+        let scripture = appModel.scripture(id: "amitabha-sutra")
+
+        XCTAssertNotNil(scripture)
+        XCTAssertEqual(scripture?.source.contains("T12n0366"), true)
+        XCTAssertEqual(scripture?.isPrototypeContent, false)
+        XCTAssertEqual(scripture?.simplifiedParagraphs.count, 20)
+        XCTAssertEqual(scripture?.traditionalParagraphs.count, 20)
+    }
+
     private func makeDate(year: Int, month: Int, day: Int) -> Date {
         var components = DateComponents()
         components.calendar = Calendar(identifier: .gregorian)

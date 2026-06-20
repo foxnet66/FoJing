@@ -18,6 +18,7 @@
 		8AF74393E26926F4B73761CE /* ProfileView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3778FA52CE72D62569E64800 /* ProfileView.swift */; };
 		ABD81DDF5C859A37148A7904 /* AppTheme.swift in Sources */ = {isa = PBXBuildFile; fileRef = B257948A6DEFE31F29A5B145 /* AppTheme.swift */; };
 		AF94F16B72E3A6F647790141 /* great-compassion-mantra.json in Resources */ = {isa = PBXBuildFile; fileRef = 357683DF9BD46E4AFAF547CB /* great-compassion-mantra.json */; };
+		B8E810A3BC58F54B9D932316 /* amitabha-sutra.json in Resources */ = {isa = PBXBuildFile; fileRef = 08A51198D395A8D368765580 /* amitabha-sutra.json */; };
 		BA798C7D6487CB86930A3842 /* DedicationView.swift in Sources */ = {isa = PBXBuildFile; fileRef = B976214CD5ED9490A1B69E0A /* DedicationView.swift */; };
 		D605530755C9AC21D7D5DA62 /* Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = 157F31E8590C2DEA3C9705BD /* Assets.xcassets */; };
 		F5DBD088F643F69B9145B6C9 /* TodayView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2E57CC07CCF62D8B318CB110 /* TodayView.swift */; };
@@ -34,6 +35,7 @@
 /* End PBXContainerItemProxy section */
 
 /* Begin PBXFileReference section */
+		08A51198D395A8D368765580 /* amitabha-sutra.json */ = {isa = PBXFileReference; lastKnownFileType = text.json; path = "amitabha-sutra.json"; sourceTree = "<group>"; };
 		157F31E8590C2DEA3C9705BD /* Assets.xcassets */ = {isa = PBXFileReference; lastKnownFileType = folder.assetcatalog; path = Assets.xcassets; sourceTree = "<group>"; };
 		2E57CC07CCF62D8B318CB110 /* TodayView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TodayView.swift; sourceTree = "<group>"; };
 		357683DF9BD46E4AFAF547CB /* great-compassion-mantra.json */ = {isa = PBXFileReference; lastKnownFileType = text.json; path = "great-compassion-mantra.json"; sourceTree = "<group>"; };
@@ -56,6 +58,7 @@
 		0B134CE8E6C146A049A53EA3 /* Scriptures */ = {
 			isa = PBXGroup;
 			children = (
+				08A51198D395A8D368765580 /* amitabha-sutra.json */,
 				357683DF9BD46E4AFAF547CB /* great-compassion-mantra.json */,
 				A6CDC0C946E312D80A3B97A4 /* heart-sutra.json */,
 			);
@@ -223,6 +226,7 @@
 			buildActionMask = 2147483647;
 			files = (
 				D605530755C9AC21D7D5DA62 /* Assets.xcassets in Resources */,
+				B8E810A3BC58F54B9D932316 /* amitabha-sutra.json in Resources */,
 				AF94F16B72E3A6F647790141 /* great-compassion-mantra.json in Resources */,
 				852E8E7F9AA0596FDBFBA243 /* heart-sutra.json in Resources */,
 			);

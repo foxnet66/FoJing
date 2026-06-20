@@ -440,7 +440,7 @@ enum ScriptureCatalog {
     )
 
     static let diamondSutra: Scripture = scriptureStub(id: "diamond-sutra", title: "金刚般若波罗蜜经", shortTitle: "金刚经", translator: "鸠摩罗什", dynasty: "姚秦", category: "般若", durationMinutes: 45, hasAudio: false)
-    static let amitabhaSutra: Scripture = scriptureStub(id: "amitabha-sutra", title: "佛说阿弥陀经", shortTitle: "阿弥陀经", translator: "鸠摩罗什", dynasty: "姚秦", category: "净土", durationMinutes: 12, hasAudio: true)
+    static let amitabhaSutra: Scripture = loadScriptureResource(named: "amitabha-sutra") ?? scriptureStub(id: "amitabha-sutra", title: "佛说阿弥陀经", shortTitle: "阿弥陀经", translator: "鸠摩罗什", dynasty: "姚秦", category: "净土", durationMinutes: 12, hasAudio: true)
     static let ksitigarbhaSutra: Scripture = scriptureStub(id: "ksitigarbha-sutra", title: "地藏菩萨本愿经", shortTitle: "地藏经", translator: "实叉难陀", dynasty: "唐", category: "地藏", durationMinutes: 120, hasAudio: false)
 
     static let greatCompassionMantra: Scripture = loadScriptureResource(named: "great-compassion-mantra") ?? fallbackGreatCompassionMantra
