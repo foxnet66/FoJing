@@ -14,8 +14,12 @@ struct ProfileView: View {
                     profileRow(title: "书签", detail: "\(appModel.bookmarkedScriptureIDs.count) 条", icon: "bookmark")
                 }
                 .profileListRowStyle()
-                profileRow(title: "回向记录", detail: "\(appModel.dedicationRecords.count) 条", icon: "clock.arrow.circlepath")
-                    .profileListRowStyle()
+                NavigationLink {
+                    DedicationHistoryView(appModel: appModel)
+                } label: {
+                    profileRow(title: "回向记录", detail: "\(appModel.dedicationRecords.count) 条", icon: "clock.arrow.circlepath")
+                }
+                .profileListRowStyle()
                 profileRow(title: "日课设置", detail: "\(appModel.completedPracticeCount)/\(appModel.practiceItems.count) 项完成", icon: "calendar")
                     .profileListRowStyle()
                 profileRow(title: "阅读设置", detail: "\(Int(appModel.readerSettings.fontSize)) pt", icon: "textformat.size")
@@ -28,8 +32,12 @@ struct ProfileView: View {
             if !appModel.dedicationRecords.isEmpty {
                 Section("最近回向") {
                     ForEach(appModel.dedicationRecords.prefix(5)) { record in
-                        dedicationRecordRow(record)
-                            .profileListRowStyle()
+                        NavigationLink {
+                            DedicationRecordDetailView(record: record)
+                        } label: {
+                            dedicationRecordRow(record)
+                        }
+                        .profileListRowStyle()
                     }
                 }
             }
@@ -364,6 +372,125 @@ struct BookmarkDetailView: View {
         .navigationTitle("书签详情")
         .navigationBarTitleDisplayMode(.inline)
         .sutraPageBackground()
+    }
+}
+
+struct DedicationHistoryView: View {
+    let appModel: AppModel
+
+    private var records: [DedicationRecord] {
+        appModel.dedicationRecords.sorted { $0.date > $1.date }
+    }
+
+    var body: some View {
+        List {
+            if records.isEmpty {
+                Section {
+                    VStack(alignment: .leading, spacing: 8) {
+                        Label("暂无回向记录", systemImage: "clock.arrow.circlepath")
+                            .font(.headline)
+                            .foregroundStyle(AppTheme.ink)
+                        Text("完成今日功课后，可进入回向并保存当日记录。")
+                            .font(.subheadline)
+                            .foregroundStyle(AppTheme.secondaryInk)
+                    }
+                    .padding(.vertical, 8)
+                    .profileListRowStyle()
+                }
+            } else {
+                Section("全部回向") {
+                    ForEach(records) { record in
+                        NavigationLink {
+                            DedicationRecordDetailView(record: record)
+                        } label: {
+                            dedicationRecordRow(record)
+                        }
+                        .profileListRowStyle()
+                    }
+                }
+            }
+        }
+        .scrollContentBackground(.hidden)
+        .navigationTitle("回向记录")
+        .navigationBarTitleDisplayMode(.inline)
+        .sutraPageBackground()
+    }
+
+    private func dedicationRecordRow(_ record: DedicationRecord) -> some View {
+        VStack(alignment: .leading, spacing: 7) {
+            HStack(alignment: .firstTextBaseline) {
+                Text(record.recipient)
+                    .font(.body.weight(.medium))
+                    .foregroundStyle(AppTheme.ink)
+                Spacer()
+                Text(record.date, format: .dateTime.month().day().hour().minute())
+                    .font(.caption)
+                    .foregroundStyle(AppTheme.secondaryInk)
+            }
+            if !record.completedItems.isEmpty {
+                Text(record.completedItems.joined(separator: "、"))
+                    .font(.caption)
+                    .foregroundStyle(AppTheme.bamboo)
+                    .lineLimit(2)
+            }
+            Text(record.text)
+                .font(.caption)
+                .foregroundStyle(AppTheme.secondaryInk)
+                .lineLimit(2)
+        }
+        .padding(.vertical, 4)
+    }
+}
+
+struct DedicationRecordDetailView: View {
+    let record: DedicationRecord
+
+    var body: some View {
+        List {
+            Section("回向时间") {
+                detailRow(title: "日期", value: record.date.formatted(.dateTime.year().month().day().weekday()))
+                detailRow(title: "时间", value: record.date.formatted(.dateTime.hour().minute()))
+            }
+
+            Section("回向对象") {
+                Text(record.recipient)
+                    .foregroundStyle(AppTheme.ink)
+                    .profileListRowStyle()
+            }
+
+            if !record.completedItems.isEmpty {
+                Section("完成项目") {
+                    ForEach(record.completedItems, id: \.self) { item in
+                        Label(item, systemImage: "checkmark.circle.fill")
+                            .foregroundStyle(AppTheme.ink)
+                            .profileListRowStyle()
+                    }
+                }
+            }
+
+            Section("回向文") {
+                Text(record.text)
+                    .foregroundStyle(AppTheme.ink)
+                    .lineSpacing(7)
+                    .textSelection(.enabled)
+                    .profileListRowStyle()
+            }
+        }
+        .scrollContentBackground(.hidden)
+        .navigationTitle("回向详情")
+        .navigationBarTitleDisplayMode(.inline)
+        .sutraPageBackground()
+    }
+
+    private func detailRow(title: String, value: String) -> some View {
+        HStack {
+            Text(title)
+                .foregroundStyle(AppTheme.ink)
+            Spacer()
+            Text(value)
+                .foregroundStyle(AppTheme.secondaryInk)
+        }
+        .profileListRowStyle()
     }
 }
 
