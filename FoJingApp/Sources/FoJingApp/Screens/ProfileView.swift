@@ -8,8 +8,12 @@ struct ProfileView: View {
     var body: some View {
         List {
             Section {
-                profileRow(title: "书签", detail: "\(appModel.bookmarkedScriptureIDs.count) 条", icon: "bookmark")
-                    .profileListRowStyle()
+                NavigationLink {
+                    BookmarkListView(appModel: appModel)
+                } label: {
+                    profileRow(title: "书签", detail: "\(appModel.bookmarkedScriptureIDs.count) 条", icon: "bookmark")
+                }
+                .profileListRowStyle()
                 profileRow(title: "回向记录", detail: "\(appModel.dedicationRecords.count) 条", icon: "clock.arrow.circlepath")
                     .profileListRowStyle()
                 profileRow(title: "日课设置", detail: "\(appModel.completedPracticeCount)/\(appModel.practiceItems.count) 项完成", icon: "calendar")
@@ -229,6 +233,137 @@ struct ProfileView: View {
             currentDay = previousDay
         }
         return count
+    }
+}
+
+struct BookmarkListView: View {
+    let appModel: AppModel
+
+    private var bookmarkedScriptures: [Scripture] {
+        appModel.scriptures.filter { appModel.bookmarkedScriptureIDs.contains($0.id) }
+    }
+
+    var body: some View {
+        List {
+            if bookmarkedScriptures.isEmpty {
+                Section {
+                    VStack(alignment: .leading, spacing: 8) {
+                        Label("暂无书签", systemImage: "bookmark")
+                            .font(.headline)
+                            .foregroundStyle(AppTheme.ink)
+                        Text("阅读经文时，点击右上角书签按钮即可收藏。")
+                            .font(.subheadline)
+                            .foregroundStyle(AppTheme.secondaryInk)
+                    }
+                    .padding(.vertical, 8)
+                    .profileListRowStyle()
+                }
+            } else {
+                Section("全部书签") {
+                    ForEach(bookmarkedScriptures) { scripture in
+                        NavigationLink {
+                            BookmarkDetailView(appModel: appModel, scripture: scripture)
+                        } label: {
+                            bookmarkRow(scripture)
+                        }
+                        .profileListRowStyle()
+                    }
+                }
+            }
+        }
+        .scrollContentBackground(.hidden)
+        .navigationTitle("书签")
+        .navigationBarTitleDisplayMode(.inline)
+        .sutraPageBackground()
+    }
+
+    private func bookmarkRow(_ scripture: Scripture) -> some View {
+        HStack(alignment: .top, spacing: 12) {
+            Image(systemName: "bookmark.fill")
+                .font(.title3)
+                .foregroundStyle(AppTheme.gold)
+                .frame(width: 26)
+
+            VStack(alignment: .leading, spacing: 6) {
+                Text(scripture.title)
+                    .font(.body.weight(.medium))
+                    .foregroundStyle(AppTheme.ink)
+                Text("\(scripture.subtitle) · \(scripture.duration)")
+                    .font(.caption)
+                    .foregroundStyle(AppTheme.secondaryInk)
+                if scripture.isPrototypeContent {
+                    Label("待接入全文", systemImage: "exclamationmark.circle")
+                        .font(.caption)
+                        .foregroundStyle(AppTheme.bamboo)
+                }
+            }
+        }
+        .padding(.vertical, 4)
+    }
+}
+
+struct BookmarkDetailView: View {
+    let appModel: AppModel
+    let scripture: Scripture
+
+    var body: some View {
+        List {
+            Section {
+                VStack(alignment: .leading, spacing: 8) {
+                    Text(scripture.category)
+                        .font(.subheadline.weight(.medium))
+                        .foregroundStyle(AppTheme.bamboo)
+                    Text(scripture.title)
+                        .font(.title2.weight(.semibold))
+                        .foregroundStyle(AppTheme.ink)
+                    Text("\(scripture.subtitle) · \(scripture.duration)")
+                        .font(.subheadline)
+                        .foregroundStyle(AppTheme.secondaryInk)
+                }
+                .padding(.vertical, 6)
+                .profileListRowStyle()
+            }
+
+            Section("版本说明") {
+                Text(scripture.source)
+                    .font(.subheadline)
+                    .foregroundStyle(AppTheme.secondaryInk)
+                    .lineSpacing(5)
+                    .profileListRowStyle()
+            }
+
+            Section("操作") {
+                if scripture.isPrototypeContent {
+                    Label("待接入可追溯全文", systemImage: "exclamationmark.circle")
+                        .foregroundStyle(AppTheme.secondaryInk)
+                        .profileListRowStyle()
+                } else {
+                    NavigationLink {
+                        ScriptureReaderView(
+                            appModel: appModel,
+                            scripture: scripture,
+                            mode: scripture.category == "咒语" ? .chanting : .reading,
+                            practiceID: nil
+                        )
+                    } label: {
+                        Label("开始阅读", systemImage: "book.pages")
+                            .foregroundStyle(AppTheme.ink)
+                    }
+                    .profileListRowStyle()
+                }
+
+                Button(role: .destructive) {
+                    appModel.toggleBookmark(scripture)
+                } label: {
+                    Label("取消书签", systemImage: "bookmark.slash")
+                }
+                .profileListRowStyle()
+            }
+        }
+        .scrollContentBackground(.hidden)
+        .navigationTitle("书签详情")
+        .navigationBarTitleDisplayMode(.inline)
+        .sutraPageBackground()
     }
 }
 
