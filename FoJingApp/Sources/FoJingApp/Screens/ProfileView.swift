@@ -20,8 +20,12 @@ struct ProfileView: View {
                     profileRow(title: "回向记录", detail: "\(appModel.dedicationRecords.count) 条", icon: "clock.arrow.circlepath")
                 }
                 .profileListRowStyle()
-                profileRow(title: "日课设置", detail: "\(appModel.completedPracticeCount)/\(appModel.practiceItems.count) 项完成", icon: "calendar")
-                    .profileListRowStyle()
+                NavigationLink {
+                    PracticeSettingsView(appModel: appModel)
+                } label: {
+                    profileRow(title: "日课设置", detail: "\(appModel.practicePlan.count) 项", icon: "calendar")
+                }
+                .profileListRowStyle()
                 profileRow(title: "阅读设置", detail: "\(Int(appModel.readerSettings.fontSize)) pt", icon: "textformat.size")
                     .profileListRowStyle()
                 profileRow(title: "文本来源", detail: scriptureSourceStatusText, icon: "checkmark.seal")
@@ -307,6 +311,133 @@ struct BookmarkListView: View {
             }
         }
         .padding(.vertical, 4)
+    }
+}
+
+struct PracticeSettingsView: View {
+    let appModel: AppModel
+
+    @State private var showsResetConfirmation = false
+
+    var body: some View {
+        List {
+            Section {
+                VStack(alignment: .leading, spacing: 8) {
+                    Label("自定义每日功课", systemImage: "calendar.badge.checkmark")
+                        .font(.headline)
+                        .foregroundStyle(AppTheme.ink)
+                    Text("选择每天要完成的经文和念佛计数。调整后会立即更新今日功课，明天会按这里的设置重新从 0 开始。")
+                        .font(.subheadline)
+                        .foregroundStyle(AppTheme.secondaryInk)
+                        .lineSpacing(4)
+                }
+                .padding(.vertical, 8)
+                .profileListRowStyle()
+            }
+
+            Section("功课项目") {
+                ForEach(AppModelPracticeSettings.candidates(for: appModel)) { template in
+                    practiceSettingRow(template)
+                        .profileListRowStyle()
+                }
+            }
+
+            Section("操作") {
+                Button {
+                    showsResetConfirmation = true
+                } label: {
+                    Label("恢复默认日课", systemImage: "arrow.counterclockwise")
+                }
+                .profileListRowStyle()
+            }
+        }
+        .id(appModel.stateRevision)
+        .scrollContentBackground(.hidden)
+        .navigationTitle("日课设置")
+        .navigationBarTitleDisplayMode(.inline)
+        .sutraPageBackground()
+        .confirmationDialog("恢复默认日课？", isPresented: $showsResetConfirmation, titleVisibility: .visible) {
+            Button("恢复默认日课", role: .destructive) {
+                appModel.resetPracticePlanToDefault()
+            }
+            Button("取消", role: .cancel) {}
+        } message: {
+            Text("会恢复为《心经》1 遍、《大悲咒》3 遍和阿弥陀佛 108 声，并同步更新今日功课。")
+        }
+    }
+
+    private func practiceSettingRow(_ template: PracticeItem) -> some View {
+        VStack(alignment: .leading, spacing: 10) {
+            Toggle(isOn: enabledBinding(for: template)) {
+                VStack(alignment: .leading, spacing: 4) {
+                    Text(template.title)
+                        .font(.body.weight(.medium))
+                        .foregroundStyle(AppTheme.ink)
+                    Text(settingSubtitle(for: template))
+                        .font(.caption)
+                        .foregroundStyle(AppTheme.secondaryInk)
+                }
+            }
+            .disabled(appModel.isPracticeEnabled(id: template.id) && appModel.practicePlan.count == 1)
+
+            if appModel.isPracticeEnabled(id: template.id) {
+                Stepper(value: targetBinding(for: template), in: targetRange(for: template)) {
+                    HStack {
+                        Text("每日目标")
+                            .foregroundStyle(AppTheme.secondaryInk)
+                        Spacer()
+                        Text("\(appModel.practiceTarget(id: template.id) ?? template.target) \(template.unit)")
+                            .font(.body.monospacedDigit().weight(.medium))
+                            .foregroundStyle(AppTheme.ink)
+                    }
+                }
+            }
+        }
+        .padding(.vertical, 4)
+    }
+
+    private func enabledBinding(for template: PracticeItem) -> Binding<Bool> {
+        Binding {
+            appModel.isPracticeEnabled(id: template.id)
+        } set: { isEnabled in
+            appModel.setPracticeEnabled(template, isEnabled: isEnabled)
+        }
+    }
+
+    private func targetBinding(for template: PracticeItem) -> Binding<Int> {
+        Binding {
+            appModel.practiceTarget(id: template.id) ?? template.target
+        } set: { target in
+            appModel.updatePracticeTarget(id: template.id, target: target)
+        }
+    }
+
+    private func targetRange(for template: PracticeItem) -> ClosedRange<Int> {
+        switch template.kind {
+        case .counter:
+            1...9999
+        case .reading, .chanting:
+            1...21
+        }
+    }
+
+    private func settingSubtitle(for template: PracticeItem) -> String {
+        switch template.kind {
+        case .reading:
+            "经文诵读"
+        case .chanting:
+            "咒语诵持"
+        case .counter:
+            "念佛计数"
+        }
+    }
+}
+
+private enum AppModelPracticeSettings {
+    static func candidates(for appModel: AppModel) -> [PracticeItem] {
+        ScriptureCatalog.availablePracticeTemplates.filter { template in
+            template.scriptureID == nil || appModel.scripture(id: template.scriptureID) != nil
+        }
     }
 }
 

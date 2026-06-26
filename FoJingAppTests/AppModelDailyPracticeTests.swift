@@ -72,6 +72,32 @@ final class AppModelDailyPracticeTests: XCTestCase {
         XCTAssertEqual(relaunched.dailyPracticeRecords[0].id, "2026-06-12")
     }
 
+    func testCustomPracticePlanPersistsAndResetsNextDay() {
+        var currentDate = makeDate(year: 2026, month: 6, day: 12)
+        let appModel = AppModel(userDefaults: userDefaults, dateProvider: { currentDate })
+        let amitabhaSutraPractice = ScriptureCatalog.practiceTemplate(for: ScriptureCatalog.amitabhaSutra)
+
+        appModel.setPracticeEnabled(amitabhaSutraPractice, isEnabled: true)
+        appModel.updatePracticeTarget(id: amitabhaSutraPractice.id, target: 2)
+        appModel.markPracticeComplete(id: amitabhaSutraPractice.id)
+
+        XCTAssertEqual(appModel.practicePlan.count, 4)
+        XCTAssertEqual(appModel.practiceItem(id: amitabhaSutraPractice.id).target, 2)
+        XCTAssertTrue(appModel.practiceItem(id: amitabhaSutraPractice.id).isComplete)
+
+        currentDate = makeDate(year: 2026, month: 6, day: 13)
+
+        XCTAssertTrue(appModel.refreshDailyPracticeIfNeeded())
+        XCTAssertEqual(appModel.practicePlan.count, 4)
+        XCTAssertEqual(appModel.practiceItem(id: amitabhaSutraPractice.id).current, 0)
+        XCTAssertEqual(appModel.practiceItem(id: amitabhaSutraPractice.id).target, 2)
+
+        let relaunched = AppModel(userDefaults: userDefaults, dateProvider: { currentDate })
+        XCTAssertEqual(relaunched.practicePlan.count, 4)
+        XCTAssertEqual(relaunched.practiceItem(id: amitabhaSutraPractice.id).current, 0)
+        XCTAssertEqual(relaunched.practiceItem(id: amitabhaSutraPractice.id).target, 2)
+    }
+
     func testAmitabhaSutraUsesFullResourceContent() {
         let appModel = AppModel(userDefaults: userDefaults)
         let scripture = appModel.scripture(id: "amitabha-sutra")

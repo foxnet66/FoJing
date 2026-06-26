@@ -135,6 +135,7 @@ struct DailyPracticeRecord: Identifiable, Hashable, Codable {
 final class AppModel {
     var scriptures = ScriptureCatalog.scriptures
     var practiceItems: [PracticeItem] = []
+    var practicePlan: [PracticeItem] = ScriptureCatalog.defaultPractices
     var readerSettings = ReaderSettings() {
         didSet {
             if !isRestoringState {
@@ -169,13 +170,13 @@ final class AppModel {
     func refreshDailyPracticeIfNeeded() -> Bool {
         let todayPracticeKey = Self.practiceKey(for: dateProvider())
         if practiceDateKey != todayPracticeKey {
-            practiceItems = ScriptureCatalog.defaultPractices
+            practiceItems = Self.resetProgress(in: practicePlan)
             practiceDateKey = todayPracticeKey
             save()
             return true
         }
         if practiceItems.isEmpty {
-            practiceItems = ScriptureCatalog.defaultPractices
+            practiceItems = Self.resetProgress(in: practicePlan)
             practiceDateKey = todayPracticeKey
             save()
             return true
@@ -291,9 +292,49 @@ final class AppModel {
     }
 
     func resetTodayPractice() {
-        practiceItems = ScriptureCatalog.defaultPractices
+        practiceItems = Self.resetProgress(in: practicePlan)
         practiceDateKey = Self.practiceKey(for: dateProvider())
         save()
+    }
+
+    func isPracticeEnabled(id: String) -> Bool {
+        practicePlan.contains { $0.id == id }
+    }
+
+    func practiceTarget(id: String) -> Int? {
+        practicePlan.first { $0.id == id }?.target
+    }
+
+    func setPracticeEnabled(_ template: PracticeItem, isEnabled: Bool) {
+        var plan = practicePlan
+        if isEnabled {
+            guard !plan.contains(where: { $0.id == template.id }) else { return }
+            plan.append(Self.resetProgress(in: [template])[0])
+        } else {
+            guard plan.count > 1 else { return }
+            plan.removeAll { $0.id == template.id }
+        }
+        applyPracticePlan(plan)
+    }
+
+    func updatePracticeTarget(id: String, target: Int) {
+        let boundedTarget = max(1, target)
+        var plan = practicePlan
+        guard let planIndex = plan.firstIndex(where: { $0.id == id }) else { return }
+        plan[planIndex] = PracticeItem(
+            id: plan[planIndex].id,
+            title: plan[planIndex].title,
+            scriptureID: plan[planIndex].scriptureID,
+            current: 0,
+            target: boundedTarget,
+            unit: plan[planIndex].unit,
+            kind: plan[planIndex].kind
+        )
+        applyPracticePlan(plan)
+    }
+
+    func resetPracticePlanToDefault() {
+        applyPracticePlan(ScriptureCatalog.defaultPractices)
     }
 
     private func load() {
@@ -302,6 +343,7 @@ final class AppModel {
         defer { isRestoringState = false }
         do {
             let state = try JSONDecoder().decode(PersistedState.self, from: data)
+            practicePlan = Self.normalizedPracticePlan(state.practicePlan ?? state.practiceItems)
             practiceItems = state.practiceItems
             readerSettings = state.readerSettings
             bookmarkedScriptureIDs = Set(state.bookmarkedScriptureIDs)
@@ -311,6 +353,7 @@ final class AppModel {
             dailyPracticeRecords = state.dailyPracticeRecords ?? []
             practiceDateKey = state.practiceDateKey ?? Self.practiceKey(for: dateProvider())
         } catch {
+            practicePlan = ScriptureCatalog.defaultPractices
             practiceItems = ScriptureCatalog.defaultPractices
             practiceDateKey = Self.practiceKey(for: dateProvider())
         }
@@ -319,6 +362,7 @@ final class AppModel {
     private func save() {
         stateRevision += 1
         let state = PersistedState(
+            practicePlan: practicePlan,
             practiceItems: practiceItems,
             readerSettings: readerSettings,
             bookmarkedScriptureIDs: Array(bookmarkedScriptureIDs),
@@ -332,6 +376,28 @@ final class AppModel {
         userDefaults.set(data, forKey: persistenceKey)
     }
 
+    private func applyPracticePlan(_ plan: [PracticeItem]) {
+        let normalizedPlan = Self.normalizedPracticePlan(plan)
+        let existingItemsByID = Dictionary(uniqueKeysWithValues: practiceItems.map { ($0.id, $0) })
+        practicePlan = normalizedPlan
+        practiceItems = normalizedPlan.map { template in
+            guard let existing = existingItemsByID[template.id] else {
+                return template
+            }
+            return PracticeItem(
+                id: template.id,
+                title: template.title,
+                scriptureID: template.scriptureID,
+                current: min(existing.current, template.target),
+                target: template.target,
+                unit: template.unit,
+                kind: template.kind
+            )
+        }
+        recordDailyPracticeCompletionIfNeeded()
+        save()
+    }
+
     private static func practiceKey(for date: Date) -> String {
         let formatter = DateFormatter()
         formatter.calendar = Calendar(identifier: .gregorian)
@@ -339,6 +405,39 @@ final class AppModel {
         formatter.timeZone = .current
         formatter.dateFormat = "yyyy-MM-dd"
         return formatter.string(from: date)
+    }
+
+    private static func normalizedPracticePlan(_ plan: [PracticeItem]) -> [PracticeItem] {
+        let availableItemsByID = Dictionary(uniqueKeysWithValues: ScriptureCatalog.availablePracticeTemplates.map { ($0.id, $0) })
+        let normalized = plan.compactMap { item -> PracticeItem? in
+            guard let template = availableItemsByID[item.id] else {
+                return nil
+            }
+            return PracticeItem(
+                id: template.id,
+                title: template.title,
+                scriptureID: template.scriptureID,
+                current: 0,
+                target: max(1, item.target),
+                unit: template.unit,
+                kind: template.kind
+            )
+        }
+        return normalized.isEmpty ? ScriptureCatalog.defaultPractices : normalized
+    }
+
+    private static func resetProgress(in plan: [PracticeItem]) -> [PracticeItem] {
+        plan.map { item in
+            PracticeItem(
+                id: item.id,
+                title: item.title,
+                scriptureID: item.scriptureID,
+                current: 0,
+                target: item.target,
+                unit: item.unit,
+                kind: item.kind
+            )
+        }
     }
 
     @discardableResult
@@ -365,6 +464,7 @@ final class AppModel {
 }
 
 private struct PersistedState: Codable {
+    let practicePlan: [PracticeItem]?
     let practiceItems: [PracticeItem]
     let readerSettings: ReaderSettings
     let bookmarkedScriptureIDs: [String]
@@ -381,6 +481,28 @@ enum ScriptureCatalog {
         PracticeItem(id: "practice-great-compassion", title: "大悲咒", scriptureID: "great-compassion-mantra", current: 0, target: 3, unit: "遍", kind: .chanting),
         PracticeItem(id: "practice-amitabha", title: "阿弥陀佛", scriptureID: nil, current: 0, target: 108, unit: "声", kind: .counter)
     ]
+
+    static var availablePracticeTemplates: [PracticeItem] {
+        let readableScripturePractices = scriptures
+            .filter { !$0.isPrototypeContent }
+            .map(practiceTemplate)
+        return readableScripturePractices + [amitabhaCounterPractice]
+    }
+
+    static func practiceTemplate(for scripture: Scripture) -> PracticeItem {
+        switch scripture.id {
+        case "heart-sutra":
+            PracticeItem(id: "practice-heart", title: scripture.shortTitle, scriptureID: scripture.id, current: 0, target: 1, unit: "遍", kind: .reading)
+        case "great-compassion-mantra":
+            PracticeItem(id: "practice-great-compassion", title: scripture.shortTitle, scriptureID: scripture.id, current: 0, target: 3, unit: "遍", kind: .chanting)
+        case "amitabha-sutra":
+            PracticeItem(id: "practice-amitabha-sutra", title: scripture.shortTitle, scriptureID: scripture.id, current: 0, target: 1, unit: "遍", kind: .reading)
+        default:
+            PracticeItem(id: "practice-\(scripture.id)", title: scripture.shortTitle, scriptureID: scripture.id, current: 0, target: 1, unit: "遍", kind: scripture.category == "咒语" ? .chanting : .reading)
+        }
+    }
+
+    private static let amitabhaCounterPractice = PracticeItem(id: "practice-amitabha", title: "阿弥陀佛", scriptureID: nil, current: 0, target: 108, unit: "声", kind: .counter)
 
     static let scriptures: [Scripture] = [
         heartSutra,
