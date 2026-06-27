@@ -335,10 +335,44 @@ struct PracticeSettingsView: View {
                 .profileListRowStyle()
             }
 
-            Section("功课项目") {
-                ForEach(AppModelPracticeSettings.candidates(for: appModel)) { template in
-                    practiceSettingRow(template)
+            Section("已启用") {
+                ForEach(appModel.practicePlan) { item in
+                    enabledPracticeRow(item)
                         .profileListRowStyle()
+                }
+                .onMove { source, destination in
+                    appModel.movePracticePlanItems(from: source, to: destination)
+                }
+            }
+
+            let availableTemplates = AppModelPracticeSettings.availableTemplates(for: appModel)
+            if !availableTemplates.isEmpty {
+                Section("可添加") {
+                    ForEach(availableTemplates) { template in
+                        Button {
+                            appModel.setPracticeEnabled(template, isEnabled: true)
+                        } label: {
+                            HStack(spacing: 12) {
+                                Image(systemName: iconName(for: template))
+                                    .font(.title3)
+                                    .foregroundStyle(AppTheme.gold)
+                                    .frame(width: 28)
+                                VStack(alignment: .leading, spacing: 4) {
+                                    Text(template.title)
+                                        .font(.body.weight(.medium))
+                                        .foregroundStyle(AppTheme.ink)
+                                    Text(settingSubtitle(for: template))
+                                        .font(.caption)
+                                        .foregroundStyle(AppTheme.secondaryInk)
+                                }
+                                Spacer()
+                                Image(systemName: "plus.circle")
+                                    .font(.title3)
+                                    .foregroundStyle(AppTheme.bamboo)
+                            }
+                        }
+                        .profileListRowStyle()
+                    }
                 }
             }
 
@@ -356,6 +390,9 @@ struct PracticeSettingsView: View {
         .navigationTitle("日课设置")
         .navigationBarTitleDisplayMode(.inline)
         .sutraPageBackground()
+        .toolbar {
+            EditButton()
+        }
         .confirmationDialog("恢复默认日课？", isPresented: $showsResetConfirmation, titleVisibility: .visible) {
             Button("恢复默认日课", role: .destructive) {
                 appModel.resetPracticePlanToDefault()
@@ -366,42 +403,48 @@ struct PracticeSettingsView: View {
         }
     }
 
-    private func practiceSettingRow(_ template: PracticeItem) -> some View {
+    private func enabledPracticeRow(_ item: PracticeItem) -> some View {
         VStack(alignment: .leading, spacing: 10) {
-            Toggle(isOn: enabledBinding(for: template)) {
+            HStack(alignment: .top, spacing: 12) {
+                Image(systemName: iconName(for: item))
+                    .font(.title3)
+                    .foregroundStyle(AppTheme.gold)
+                    .frame(width: 28)
+                    .padding(.top, 2)
+
                 VStack(alignment: .leading, spacing: 4) {
-                    Text(template.title)
+                    Text(item.title)
                         .font(.body.weight(.medium))
                         .foregroundStyle(AppTheme.ink)
-                    Text(settingSubtitle(for: template))
+                    Text(settingSubtitle(for: item))
                         .font(.caption)
                         .foregroundStyle(AppTheme.secondaryInk)
                 }
-            }
-            .disabled(appModel.isPracticeEnabled(id: template.id) && appModel.practicePlan.count == 1)
 
-            if appModel.isPracticeEnabled(id: template.id) {
-                Stepper(value: targetBinding(for: template), in: targetRange(for: template)) {
-                    HStack {
-                        Text("每日目标")
-                            .foregroundStyle(AppTheme.secondaryInk)
-                        Spacer()
-                        Text("\(appModel.practiceTarget(id: template.id) ?? template.target) \(template.unit)")
-                            .font(.body.monospacedDigit().weight(.medium))
-                            .foregroundStyle(AppTheme.ink)
-                    }
+                Spacer()
+
+                Button(role: .destructive) {
+                    appModel.setPracticeEnabled(item, isEnabled: false)
+                } label: {
+                    Image(systemName: "minus.circle")
+                        .font(.title3)
+                }
+                .disabled(appModel.practicePlan.count == 1)
+                .accessibilityLabel("移除\(item.title)")
+            }
+
+            Stepper(value: targetBinding(for: item), in: targetRange(for: item)) {
+                HStack {
+                    Text("每日目标")
+                        .foregroundStyle(AppTheme.secondaryInk)
+                    Spacer()
+                    Text("\(appModel.practiceTarget(id: item.id) ?? item.target) \(item.unit)")
+                        .font(.body.monospacedDigit().weight(.medium))
+                        .foregroundStyle(AppTheme.ink)
                 }
             }
         }
         .padding(.vertical, 4)
-    }
-
-    private func enabledBinding(for template: PracticeItem) -> Binding<Bool> {
-        Binding {
-            appModel.isPracticeEnabled(id: template.id)
-        } set: { isEnabled in
-            appModel.setPracticeEnabled(template, isEnabled: isEnabled)
-        }
     }
 
     private func targetBinding(for template: PracticeItem) -> Binding<Int> {
@@ -431,12 +474,24 @@ struct PracticeSettingsView: View {
             "念佛计数"
         }
     }
+
+    private func iconName(for template: PracticeItem) -> String {
+        switch template.kind {
+        case .reading:
+            "book.pages"
+        case .chanting:
+            "text.quote"
+        case .counter:
+            "circle.grid.3x3"
+        }
+    }
 }
 
 private enum AppModelPracticeSettings {
-    static func candidates(for appModel: AppModel) -> [PracticeItem] {
+    static func availableTemplates(for appModel: AppModel) -> [PracticeItem] {
         ScriptureCatalog.availablePracticeTemplates.filter { template in
-            template.scriptureID == nil || appModel.scripture(id: template.scriptureID) != nil
+            !appModel.isPracticeEnabled(id: template.id) &&
+                (template.scriptureID == nil || appModel.scripture(id: template.scriptureID) != nil)
         }
     }
 }

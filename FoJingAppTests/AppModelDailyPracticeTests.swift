@@ -98,6 +98,23 @@ final class AppModelDailyPracticeTests: XCTestCase {
         XCTAssertEqual(relaunched.practiceItem(id: amitabhaSutraPractice.id).target, 2)
     }
 
+    func testMovingPracticePlanPersistsOrderAndKeepsProgress() {
+        let today = makeDate(year: 2026, month: 6, day: 12)
+        let appModel = AppModel(userDefaults: userDefaults, dateProvider: { today })
+
+        appModel.markPracticeComplete(id: "practice-heart")
+        appModel.movePracticePlanItems(from: IndexSet(integer: 2), to: 0)
+
+        XCTAssertEqual(appModel.practicePlan.map(\.id), ["practice-amitabha", "practice-heart", "practice-great-compassion"])
+        XCTAssertEqual(appModel.practiceItems.map(\.id), ["practice-amitabha", "practice-heart", "practice-great-compassion"])
+        XCTAssertTrue(appModel.practiceItem(id: "practice-heart").isComplete)
+
+        let relaunched = AppModel(userDefaults: userDefaults, dateProvider: { today })
+        XCTAssertEqual(relaunched.practicePlan.map(\.id), ["practice-amitabha", "practice-heart", "practice-great-compassion"])
+        XCTAssertEqual(relaunched.practiceItems.map(\.id), ["practice-amitabha", "practice-heart", "practice-great-compassion"])
+        XCTAssertTrue(relaunched.practiceItem(id: "practice-heart").isComplete)
+    }
+
     func testAmitabhaSutraUsesFullResourceContent() {
         let appModel = AppModel(userDefaults: userDefaults)
         let scripture = appModel.scripture(id: "amitabha-sutra")

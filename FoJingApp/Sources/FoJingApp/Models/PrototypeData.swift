@@ -333,6 +333,24 @@ final class AppModel {
         applyPracticePlan(plan)
     }
 
+    func movePracticePlanItems(from source: IndexSet, to destination: Int) {
+        guard !source.isEmpty else { return }
+        var plan = practicePlan
+        let movingItems = source.compactMap { index -> PracticeItem? in
+            guard plan.indices.contains(index) else { return nil }
+            return plan[index]
+        }
+        guard !movingItems.isEmpty else { return }
+
+        plan = plan.enumerated()
+            .filter { !source.contains($0.offset) }
+            .map(\.element)
+        let removedBeforeDestination = source.filter { $0 < destination }.count
+        let adjustedDestination = max(0, min(destination - removedBeforeDestination, plan.count))
+        plan.insert(contentsOf: movingItems, at: adjustedDestination)
+        applyPracticePlan(plan)
+    }
+
     func resetPracticePlanToDefault() {
         applyPracticePlan(ScriptureCatalog.defaultPractices)
     }
