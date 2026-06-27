@@ -21,6 +21,7 @@
 		B8E810A3BC58F54B9D932316 /* amitabha-sutra.json in Resources */ = {isa = PBXBuildFile; fileRef = 08A51198D395A8D368765580 /* amitabha-sutra.json */; };
 		BA798C7D6487CB86930A3842 /* DedicationView.swift in Sources */ = {isa = PBXBuildFile; fileRef = B976214CD5ED9490A1B69E0A /* DedicationView.swift */; };
 		D605530755C9AC21D7D5DA62 /* Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = 157F31E8590C2DEA3C9705BD /* Assets.xcassets */; };
+		E8B3F1BBF9A3BCB9B4BFD314 /* DailyPracticeReminderScheduler.swift in Sources */ = {isa = PBXBuildFile; fileRef = 8D4D10F538AD407ACFC5173E /* DailyPracticeReminderScheduler.swift */; };
 		F5DBD088F643F69B9145B6C9 /* TodayView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2E57CC07CCF62D8B318CB110 /* TodayView.swift */; };
 /* End PBXBuildFile section */
 
@@ -44,6 +45,7 @@
 		51532FB937586E7F5CEF6414 /* FoJingApp.app */ = {isa = PBXFileReference; includeInIndex = 0; lastKnownFileType = wrapper.application; path = FoJingApp.app; sourceTree = BUILT_PRODUCTS_DIR; };
 		64520B4537344BAAAFDCCAE1 /* PrototypeData.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PrototypeData.swift; sourceTree = "<group>"; };
 		89C2286784380140EDE175C4 /* ChantPracticeView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ChantPracticeView.swift; sourceTree = "<group>"; };
+		8D4D10F538AD407ACFC5173E /* DailyPracticeReminderScheduler.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DailyPracticeReminderScheduler.swift; sourceTree = "<group>"; };
 		9010F2F7BFD56F2E49635CC5 /* FoJingApp.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = FoJingApp.swift; sourceTree = "<group>"; };
 		951099BF3AE8E1CC0C8D40AF /* AppModelDailyPracticeTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AppModelDailyPracticeTests.swift; sourceTree = "<group>"; };
 		A6CDC0C946E312D80A3B97A4 /* heart-sutra.json */ = {isa = PBXFileReference; lastKnownFileType = text.json; path = "heart-sutra.json"; sourceTree = "<group>"; };
@@ -100,6 +102,7 @@
 			isa = PBXGroup;
 			children = (
 				B257948A6DEFE31F29A5B145 /* AppTheme.swift */,
+				8D4D10F538AD407ACFC5173E /* DailyPracticeReminderScheduler.swift */,
 			);
 			path = Shared;
 			sourceTree = "<group>";
@@ -242,6 +245,7 @@
 				29E445BB9ED2069B8DED10E5 /* AppShellView.swift in Sources */,
 				ABD81DDF5C859A37148A7904 /* AppTheme.swift in Sources */,
 				85B6650C6C00C8785AC365ED /* ChantPracticeView.swift in Sources */,
+				E8B3F1BBF9A3BCB9B4BFD314 /* DailyPracticeReminderScheduler.swift in Sources */,
 				BA798C7D6487CB86930A3842 /* DedicationView.swift in Sources */,
 				47C5878C713F2DC770B49969 /* FoJingApp.swift in Sources */,
 				8AF74393E26926F4B73761CE /* ProfileView.swift in Sources */,

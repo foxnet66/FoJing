@@ -52,9 +52,15 @@ struct AppShellView: View {
         .toolbarBackground(AppTheme.paper, for: .tabBar)
         .toolbarBackground(.visible, for: .tabBar)
         .toolbarColorScheme(colorScheme, for: .tabBar)
+        .task {
+            _ = await DailyPracticeReminderScheduler.sync(settings: appModel.dailyPracticeReminderSettings)
+        }
         .onChange(of: scenePhase) { _, newPhase in
             if newPhase == .active {
                 appModel.refreshDailyPracticeIfNeeded()
+                Task {
+                    _ = await DailyPracticeReminderScheduler.sync(settings: appModel.dailyPracticeReminderSettings)
+                }
             }
         }
     }

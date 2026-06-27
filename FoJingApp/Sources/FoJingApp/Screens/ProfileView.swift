@@ -26,6 +26,12 @@ struct ProfileView: View {
                     profileRow(title: "日课设置", detail: "\(appModel.practicePlan.count) 项", icon: "calendar")
                 }
                 .profileListRowStyle()
+                NavigationLink {
+                    DailyPracticeReminderView(appModel: appModel)
+                } label: {
+                    profileRow(title: "日课提醒", detail: reminderStatusText, icon: "bell")
+                }
+                .profileListRowStyle()
                 profileRow(title: "阅读设置", detail: "\(Int(appModel.readerSettings.fontSize)) pt", icon: "textformat.size")
                     .profileListRowStyle()
                 profileRow(title: "文本来源", detail: scriptureSourceStatusText, icon: "checkmark.seal")
@@ -218,6 +224,10 @@ struct ProfileView: View {
         return "\(availableCount) 部正式，\(pendingCount) 部待接入"
     }
 
+    private var reminderStatusText: String {
+        appModel.dailyPracticeReminderSettings.isEnabled ? appModel.dailyPracticeReminderSettings.timeText : "关闭"
+    }
+
     private var monthlyPracticeCompletionCount: Int {
         let calendar = Calendar.current
         let now = Date()
@@ -245,6 +255,105 @@ struct ProfileView: View {
             currentDay = previousDay
         }
         return count
+    }
+}
+
+struct DailyPracticeReminderView: View {
+    let appModel: AppModel
+
+    @State private var statusMessage: String?
+
+    var body: some View {
+        List {
+            Section {
+                VStack(alignment: .leading, spacing: 8) {
+                    Label("每日提醒", systemImage: "bell")
+                        .font(.headline)
+                        .foregroundStyle(AppTheme.ink)
+                    Text("提醒只在本机设置，不会上传你的日课、阅读或回向记录。")
+                        .font(.subheadline)
+                        .foregroundStyle(AppTheme.secondaryInk)
+                        .lineSpacing(4)
+                }
+                .padding(.vertical, 8)
+                .profileListRowStyle()
+            }
+
+            Section("提醒设置") {
+                Toggle("开启日课提醒", isOn: reminderEnabledBinding)
+                    .profileListRowStyle()
+
+                if appModel.dailyPracticeReminderSettings.isEnabled {
+                    DatePicker("提醒时间", selection: reminderTimeBinding, displayedComponents: .hourAndMinute)
+                        .profileListRowStyle()
+                }
+            }
+
+            if let statusMessage {
+                Section {
+                    Text(statusMessage)
+                        .font(.subheadline)
+                        .foregroundStyle(AppTheme.secondaryInk)
+                        .profileListRowStyle()
+                }
+            }
+        }
+        .id(appModel.stateRevision)
+        .scrollContentBackground(.hidden)
+        .navigationTitle("日课提醒")
+        .navigationBarTitleDisplayMode(.inline)
+        .sutraPageBackground()
+    }
+
+    private var reminderEnabledBinding: Binding<Bool> {
+        Binding {
+            appModel.dailyPracticeReminderSettings.isEnabled
+        } set: { isEnabled in
+            var settings = appModel.dailyPracticeReminderSettings
+            settings.isEnabled = isEnabled
+            appModel.updateDailyPracticeReminderSettings(settings)
+            statusMessage = isEnabled ? "正在请求通知权限..." : "日课提醒已关闭。"
+
+            Task {
+                let didSync = await DailyPracticeReminderScheduler.sync(settings: settings)
+                await MainActor.run {
+                    if didSync {
+                        statusMessage = settings.isEnabled ? "日课提醒已设置为每天 \(settings.timeText)。" : "日课提醒已关闭。"
+                    } else {
+                        var disabledSettings = settings
+                        disabledSettings.isEnabled = false
+                        appModel.updateDailyPracticeReminderSettings(disabledSettings)
+                        statusMessage = "通知权限未开启。请在系统设置中允许净诵发送通知后，再开启日课提醒。"
+                    }
+                }
+            }
+        }
+    }
+
+    private var reminderTimeBinding: Binding<Date> {
+        Binding {
+            Self.date(from: appModel.dailyPracticeReminderSettings)
+        } set: { date in
+            let components = Calendar.current.dateComponents([.hour, .minute], from: date)
+            var settings = appModel.dailyPracticeReminderSettings
+            settings.hour = components.hour ?? settings.hour
+            settings.minute = components.minute ?? settings.minute
+            appModel.updateDailyPracticeReminderSettings(settings)
+
+            Task {
+                let didSync = await DailyPracticeReminderScheduler.sync(settings: settings)
+                await MainActor.run {
+                    statusMessage = didSync ? "日课提醒已更新为每天 \(settings.timeText)。" : "通知权限未开启。请在系统设置中允许通知后再开启提醒。"
+                }
+            }
+        }
+    }
+
+    private static func date(from settings: DailyPracticeReminderSettings) -> Date {
+        var components = Calendar.current.dateComponents([.year, .month, .day], from: Date())
+        components.hour = settings.hour
+        components.minute = settings.minute
+        return components.date ?? Date()
     }
 }
 

@@ -115,6 +115,19 @@ final class AppModelDailyPracticeTests: XCTestCase {
         XCTAssertTrue(relaunched.practiceItem(id: "practice-heart").isComplete)
     }
 
+    func testDailyPracticeReminderSettingsPersist() {
+        let appModel = AppModel(userDefaults: userDefaults)
+        appModel.updateDailyPracticeReminderSettings(
+            DailyPracticeReminderSettings(isEnabled: true, hour: 6, minute: 30)
+        )
+
+        let relaunched = AppModel(userDefaults: userDefaults)
+        XCTAssertTrue(relaunched.dailyPracticeReminderSettings.isEnabled)
+        XCTAssertEqual(relaunched.dailyPracticeReminderSettings.hour, 6)
+        XCTAssertEqual(relaunched.dailyPracticeReminderSettings.minute, 30)
+        XCTAssertEqual(relaunched.dailyPracticeReminderSettings.timeText, "06:30")
+    }
+
     func testAmitabhaSutraUsesFullResourceContent() {
         let appModel = AppModel(userDefaults: userDefaults)
         let scripture = appModel.scripture(id: "amitabha-sutra")

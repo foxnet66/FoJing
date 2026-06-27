@@ -116,6 +116,16 @@ struct ReaderSettings: Hashable, Codable {
     }
 }
 
+struct DailyPracticeReminderSettings: Hashable, Codable {
+    var isEnabled = false
+    var hour = 20
+    var minute = 0
+
+    var timeText: String {
+        "\(String(format: "%02d", hour)):\(String(format: "%02d", minute))"
+    }
+}
+
 struct DedicationRecord: Identifiable, Hashable, Codable {
     let id: UUID
     let date: Date
@@ -136,6 +146,7 @@ final class AppModel {
     var scriptures = ScriptureCatalog.scriptures
     var practiceItems: [PracticeItem] = []
     var practicePlan: [PracticeItem] = ScriptureCatalog.defaultPractices
+    var dailyPracticeReminderSettings = DailyPracticeReminderSettings()
     var readerSettings = ReaderSettings() {
         didSet {
             if !isRestoringState {
@@ -276,6 +287,11 @@ final class AppModel {
         readerSettings = settings
     }
 
+    func updateDailyPracticeReminderSettings(_ settings: DailyPracticeReminderSettings) {
+        dailyPracticeReminderSettings = settings
+        save()
+    }
+
     func saveDedication(recipient: String, text: String) {
         let completed = practiceItems
             .filter(\.isComplete)
@@ -363,6 +379,7 @@ final class AppModel {
             let state = try JSONDecoder().decode(PersistedState.self, from: data)
             practicePlan = Self.normalizedPracticePlan(state.practicePlan ?? state.practiceItems)
             practiceItems = state.practiceItems
+            dailyPracticeReminderSettings = state.dailyPracticeReminderSettings ?? DailyPracticeReminderSettings()
             readerSettings = state.readerSettings
             bookmarkedScriptureIDs = Set(state.bookmarkedScriptureIDs)
             readingProgress = state.readingProgress
@@ -373,6 +390,7 @@ final class AppModel {
         } catch {
             practicePlan = ScriptureCatalog.defaultPractices
             practiceItems = ScriptureCatalog.defaultPractices
+            dailyPracticeReminderSettings = DailyPracticeReminderSettings()
             practiceDateKey = Self.practiceKey(for: dateProvider())
         }
     }
@@ -382,6 +400,7 @@ final class AppModel {
         let state = PersistedState(
             practicePlan: practicePlan,
             practiceItems: practiceItems,
+            dailyPracticeReminderSettings: dailyPracticeReminderSettings,
             readerSettings: readerSettings,
             bookmarkedScriptureIDs: Array(bookmarkedScriptureIDs),
             readingProgress: readingProgress,
@@ -484,6 +503,7 @@ final class AppModel {
 private struct PersistedState: Codable {
     let practicePlan: [PracticeItem]?
     let practiceItems: [PracticeItem]
+    let dailyPracticeReminderSettings: DailyPracticeReminderSettings?
     let readerSettings: ReaderSettings
     let bookmarkedScriptureIDs: [String]
     let readingProgress: [String: Int]
