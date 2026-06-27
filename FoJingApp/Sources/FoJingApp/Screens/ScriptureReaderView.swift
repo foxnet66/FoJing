@@ -173,6 +173,7 @@ struct ScriptureReaderView: View {
                 .onAppear {
                     configureSpeechCallbacks()
                     restoreReadingProgress(with: proxy)
+                    appModel.saveProgress(scripture: scripture, paragraphIndex: activeParagraph)
                 }
             }
         }

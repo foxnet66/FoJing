@@ -32,6 +32,24 @@ struct ScriptureLibraryView: View {
         }
     }
 
+    private var recentReadableScriptures: [Scripture] {
+        var seenIDs = Set<String>()
+        var result: [Scripture] = []
+
+        if let recent = appModel.scripture(id: appModel.recentScriptureID), !recent.isPrototypeContent {
+            result.append(recent)
+            seenIDs.insert(recent.id)
+        }
+
+        for scripture in appModel.scriptures where !scripture.isPrototypeContent {
+            guard !seenIDs.contains(scripture.id), readingProgress(for: scripture) > 0 else { continue }
+            result.append(scripture)
+            seenIDs.insert(scripture.id)
+        }
+
+        return result
+    }
+
     private var dailyPracticeScriptureIDs: Set<String> {
         Set(appModel.practiceItems.compactMap(\.scriptureID))
     }
@@ -40,6 +58,9 @@ struct ScriptureLibraryView: View {
         ScrollView {
             VStack(alignment: .leading, spacing: 18) {
                 searchField
+                if trimmedQuery.isEmpty, !recentReadableScriptures.isEmpty {
+                    recentReadingSection
+                }
                 categoryScroller
                 scriptureList
             }
@@ -62,6 +83,46 @@ struct ScriptureLibraryView: View {
         .overlay {
             RoundedRectangle(cornerRadius: 8)
                 .stroke(AppTheme.separator, lineWidth: 1)
+        }
+    }
+
+    private var recentReadingSection: some View {
+        VStack(alignment: .leading, spacing: 12) {
+            Text("最近阅读")
+                .font(.headline)
+
+            ForEach(recentReadableScriptures.prefix(3)) { scripture in
+                NavigationLink {
+                    ScriptureReaderView(
+                        appModel: appModel,
+                        scripture: scripture,
+                        mode: scripture.category == "咒语" ? .chanting : .reading,
+                        practiceID: nil
+                    )
+                } label: {
+                    PaperCard {
+                        HStack(spacing: 12) {
+                            Image(systemName: "clock.arrow.circlepath")
+                                .font(.title3)
+                                .foregroundStyle(AppTheme.gold)
+                                .frame(width: 28)
+                            VStack(alignment: .leading, spacing: 6) {
+                                Text(scripture.title)
+                                    .font(.body.weight(.medium))
+                                    .foregroundStyle(AppTheme.ink)
+                                Text(readingProgressText(for: scripture))
+                                    .font(.caption)
+                                    .foregroundStyle(AppTheme.secondaryInk)
+                            }
+                            Spacer()
+                            Image(systemName: "chevron.right")
+                                .font(.caption.weight(.semibold))
+                                .foregroundStyle(AppTheme.secondaryInk)
+                        }
+                    }
+                }
+                .buttonStyle(.plain)
+            }
         }
     }
 
@@ -107,6 +168,11 @@ struct ScriptureLibraryView: View {
                                 Text("\(scripture.subtitle) · \(scripture.duration)")
                                     .font(.subheadline)
                                     .foregroundStyle(AppTheme.secondaryInk)
+                                if readingProgress(for: scripture) > 0 {
+                                    Label(readingProgressText(for: scripture), systemImage: "bookmark.circle")
+                                        .font(.caption)
+                                        .foregroundStyle(AppTheme.secondaryInk)
+                                }
                                 HStack(spacing: 8) {
                                     if scripture.isPrototypeContent {
                                         Label("待接入全文", systemImage: "exclamationmark.circle")
@@ -136,6 +202,22 @@ struct ScriptureLibraryView: View {
                     .padding(.vertical, 28)
             }
         }
+    }
+
+    private func readingProgress(for scripture: Scripture) -> Int {
+        appModel.readingProgress[scripture.id] ?? 0
+    }
+
+    private func readingProgressText(for scripture: Scripture) -> String {
+        let progress = readingProgress(for: scripture)
+        guard progress > 0 else {
+            return "尚未开始"
+        }
+        let paragraphCount = max(scripture.simplifiedParagraphs.count, scripture.traditionalParagraphs.count)
+        guard paragraphCount > 0 else {
+            return "已开始阅读"
+        }
+        return "读到第 \(min(progress + 1, paragraphCount))/\(paragraphCount) 段"
     }
 }
 
@@ -196,7 +278,7 @@ struct ScriptureDetailView: View {
                             practiceID: nil
                         )
                     } label: {
-                        Label("开始阅读", systemImage: "book.pages")
+                        Label(primaryActionTitle, systemImage: "book.pages")
                             .font(.headline)
                             .frame(maxWidth: .infinity)
                             .padding(.vertical, 15)
@@ -229,6 +311,11 @@ struct ScriptureDetailView: View {
         .navigationTitle("经文详情")
         .navigationBarTitleDisplayMode(.inline)
         .sutraPageBackground()
+    }
+
+    private var primaryActionTitle: String {
+        let progress = appModel.readingProgress[scripture.id] ?? 0
+        return progress > 0 ? "继续阅读" : "开始阅读"
     }
 }
 
