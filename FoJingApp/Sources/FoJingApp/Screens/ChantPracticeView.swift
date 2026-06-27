@@ -103,57 +103,21 @@ struct ChantPracticeView: View {
     @State private var bellEnabled = false
     @State private var soundEngine = ChantSoundEngine()
 
-    private var counterPractice: PracticeItem {
-        appModel.practiceItems.first { $0.kind == .counter } ??
-            PracticeItem(id: "practice-amitabha", title: "阿弥陀佛", scriptureID: nil, current: 0, target: 108, unit: "声", kind: .counter)
+    private var counterPractice: PracticeItem? {
+        appModel.practiceItems.first { $0.kind == .counter }
+    }
+
+    private var counterTemplate: PracticeItem? {
+        ScriptureCatalog.availablePracticeTemplates.first { $0.kind == .counter }
     }
 
     var body: some View {
         ScrollView {
             VStack(alignment: .leading, spacing: 22) {
-                PaperCard {
-                    VStack(alignment: .leading, spacing: 10) {
-                        Text("今日诵持")
-                            .font(.headline)
-                        HStack {
-                            Text(counterPractice.title)
-                            Spacer()
-                            Text("\(counterPractice.current) / \(counterPractice.target)")
-                                .monospacedDigit()
-                                .foregroundStyle(AppTheme.secondaryInk)
-                        }
-                    }
-                }
-
-                VStack(spacing: 18) {
-                    Text("今日目标")
-                        .font(.headline)
-                    Text("\(counterPractice.target) \(counterPractice.unit)")
-                        .foregroundStyle(AppTheme.secondaryInk)
-                    Text("\(counterPractice.current)")
-                        .font(.system(size: 76, weight: .light, design: .serif))
-                        .monospacedDigit()
-                        .foregroundStyle(AppTheme.bamboo)
-                    Button {
-                        incrementCounter()
-                    } label: {
-                        Text(counterPractice.isComplete ? "已完成" : "记一声")
-                            .font(.title3.weight(.semibold))
-                            .frame(maxWidth: .infinity)
-                            .padding(.vertical, 18)
-                            .foregroundStyle(Color.white)
-                            .background(AppTheme.bamboo, in: RoundedRectangle(cornerRadius: 8))
-                    }
-                    .buttonStyle(.plain)
-                    .disabled(counterPractice.isComplete)
-                    .sensoryFeedback(.increase, trigger: counterPractice.current)
-                }
-                .frame(maxWidth: .infinity)
-                .padding(22)
-                .background(AppTheme.surface, in: RoundedRectangle(cornerRadius: 8))
-                .overlay {
-                    RoundedRectangle(cornerRadius: 8)
-                        .stroke(AppTheme.separator, lineWidth: 1)
+                if let counterPractice {
+                    activeCounterContent(counterPractice)
+                } else {
+                    missingCounterContent
                 }
 
                 PaperCard {
@@ -184,7 +148,83 @@ struct ChantPracticeView: View {
         .sutraPageBackground()
     }
 
-    private func incrementCounter() {
+    private func activeCounterContent(_ counterPractice: PracticeItem) -> some View {
+        VStack(alignment: .leading, spacing: 22) {
+            PaperCard {
+                VStack(alignment: .leading, spacing: 10) {
+                    Text("今日诵持")
+                        .font(.headline)
+                    HStack {
+                        Text(counterPractice.title)
+                        Spacer()
+                        Text("\(counterPractice.current) / \(counterPractice.target)")
+                            .monospacedDigit()
+                            .foregroundStyle(AppTheme.secondaryInk)
+                    }
+                }
+            }
+
+            VStack(spacing: 18) {
+                Text("今日目标")
+                    .font(.headline)
+                Text("\(counterPractice.target) \(counterPractice.unit)")
+                    .foregroundStyle(AppTheme.secondaryInk)
+                Text("\(counterPractice.current)")
+                    .font(.system(size: 76, weight: .light, design: .serif))
+                    .monospacedDigit()
+                    .foregroundStyle(AppTheme.bamboo)
+                Button {
+                    incrementCounter(counterPractice)
+                } label: {
+                    Text(counterPractice.isComplete ? "已完成" : "记一声")
+                        .font(.title3.weight(.semibold))
+                        .frame(maxWidth: .infinity)
+                        .padding(.vertical, 18)
+                        .foregroundStyle(Color.white)
+                        .background(AppTheme.bamboo, in: RoundedRectangle(cornerRadius: 8))
+                }
+                .buttonStyle(.plain)
+                .disabled(counterPractice.isComplete)
+                .sensoryFeedback(.increase, trigger: counterPractice.current)
+            }
+            .frame(maxWidth: .infinity)
+            .padding(22)
+            .background(AppTheme.surface, in: RoundedRectangle(cornerRadius: 8))
+            .overlay {
+                RoundedRectangle(cornerRadius: 8)
+                    .stroke(AppTheme.separator, lineWidth: 1)
+            }
+        }
+    }
+
+    private var missingCounterContent: some View {
+        PaperCard {
+            VStack(alignment: .leading, spacing: 14) {
+                Label("阿弥陀佛计数未加入今日功课", systemImage: "info.circle")
+                    .font(.headline)
+                    .foregroundStyle(AppTheme.ink)
+                Text("底部诵持页只记录已加入今日功课的念佛计数。加入后会同步出现在今日页，并保存每日进度。")
+                    .font(.subheadline)
+                    .foregroundStyle(AppTheme.secondaryInk)
+                    .lineSpacing(5)
+
+                Button {
+                    addCounterToDailyPractice()
+                } label: {
+                    Label("加入今日功课", systemImage: "plus.circle")
+                        .font(.headline)
+                        .frame(maxWidth: .infinity)
+                        .padding(.vertical, 14)
+                        .foregroundStyle(Color.white)
+                        .background(AppTheme.bamboo, in: RoundedRectangle(cornerRadius: 8))
+                }
+                .buttonStyle(.plain)
+                .disabled(counterTemplate == nil)
+            }
+        }
+    }
+
+    private func incrementCounter(_ counterPractice: PracticeItem) {
         let willComplete = counterPractice.current + 1 >= counterPractice.target
         appModel.incrementPractice(id: counterPractice.id)
 
@@ -197,6 +237,11 @@ struct ChantPracticeView: View {
                 soundEngine.play(.bell)
             }
         }
+    }
+
+    private func addCounterToDailyPractice() {
+        guard let counterTemplate else { return }
+        appModel.setPracticeEnabled(counterTemplate, isEnabled: true)
     }
 }
 
