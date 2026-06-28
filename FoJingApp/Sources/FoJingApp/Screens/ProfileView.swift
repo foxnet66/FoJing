@@ -262,6 +262,7 @@ struct DailyPracticeReminderView: View {
     let appModel: AppModel
 
     @State private var statusMessage: String?
+    @State private var isRequestingAuthorization = false
 
     var body: some View {
         List {
@@ -281,6 +282,7 @@ struct DailyPracticeReminderView: View {
 
             Section("提醒设置") {
                 Toggle("开启日课提醒", isOn: reminderEnabledBinding)
+                    .disabled(isRequestingAuthorization)
                     .profileListRowStyle()
 
                 if appModel.dailyPracticeReminderSettings.isEnabled {
@@ -298,7 +300,6 @@ struct DailyPracticeReminderView: View {
                 }
             }
         }
-        .id(appModel.stateRevision)
         .scrollContentBackground(.hidden)
         .navigationTitle("日课提醒")
         .navigationBarTitleDisplayMode(.inline)
@@ -310,21 +311,35 @@ struct DailyPracticeReminderView: View {
             appModel.dailyPracticeReminderSettings.isEnabled
         } set: { isEnabled in
             var settings = appModel.dailyPracticeReminderSettings
-            settings.isEnabled = isEnabled
-            appModel.updateDailyPracticeReminderSettings(settings)
-            statusMessage = isEnabled ? "正在请求通知权限..." : "日课提醒已关闭。"
+
+            if !isEnabled {
+                settings.isEnabled = false
+                appModel.updateDailyPracticeReminderSettings(settings)
+                statusMessage = "日课提醒已关闭。"
+
+                Task {
+                    _ = await DailyPracticeReminderScheduler.sync(settings: settings)
+                }
+                return
+            }
+
+            statusMessage = "正在请求通知权限..."
+            isRequestingAuthorization = true
 
             Task {
-                let didSync = await DailyPracticeReminderScheduler.sync(settings: settings)
+                var enabledSettings = settings
+                enabledSettings.isEnabled = true
+                let didSync = await DailyPracticeReminderScheduler.sync(settings: enabledSettings)
+
                 await MainActor.run {
-                    if didSync {
-                        statusMessage = settings.isEnabled ? "日课提醒已设置为每天 \(settings.timeText)。" : "日课提醒已关闭。"
-                    } else {
-                        var disabledSettings = settings
-                        disabledSettings.isEnabled = false
-                        appModel.updateDailyPracticeReminderSettings(disabledSettings)
+                    isRequestingAuthorization = false
+                    guard didSync else {
                         statusMessage = "通知权限未开启。请在系统设置中允许净诵发送通知后，再开启日课提醒。"
+                        return
                     }
+
+                    appModel.updateDailyPracticeReminderSettings(enabledSettings)
+                    statusMessage = "日课提醒已设置为每天 \(enabledSettings.timeText)。"
                 }
             }
         }
@@ -343,7 +358,14 @@ struct DailyPracticeReminderView: View {
             Task {
                 let didSync = await DailyPracticeReminderScheduler.sync(settings: settings)
                 await MainActor.run {
-                    statusMessage = didSync ? "日课提醒已更新为每天 \(settings.timeText)。" : "通知权限未开启。请在系统设置中允许通知后再开启提醒。"
+                    if didSync {
+                        statusMessage = "日课提醒已更新为每天 \(settings.timeText)。"
+                    } else {
+                        var disabledSettings = settings
+                        disabledSettings.isEnabled = false
+                        appModel.updateDailyPracticeReminderSettings(disabledSettings)
+                        statusMessage = "通知权限未开启。请在系统设置中允许通知后再开启提醒。"
+                    }
                 }
             }
         }
