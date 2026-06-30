@@ -53,15 +53,27 @@ struct AppShellView: View {
         .toolbarBackground(.visible, for: .tabBar)
         .toolbarColorScheme(colorScheme, for: .tabBar)
         .task {
-            _ = await DailyPracticeReminderScheduler.sync(settings: appModel.dailyPracticeReminderSettings)
+            await syncReminderSettings()
         }
         .onChange(of: scenePhase) { _, newPhase in
             if newPhase == .active {
                 appModel.refreshDailyPracticeIfNeeded()
                 Task {
-                    _ = await DailyPracticeReminderScheduler.sync(settings: appModel.dailyPracticeReminderSettings)
+                    await syncReminderSettings()
                 }
             }
+        }
+    }
+
+    private func syncReminderSettings() async {
+        let settings = appModel.dailyPracticeReminderSettings
+        let didSync = await DailyPracticeReminderScheduler.sync(settings: settings)
+
+        guard !didSync, settings.isEnabled else { return }
+        await MainActor.run {
+            var disabledSettings = appModel.dailyPracticeReminderSettings
+            disabledSettings.isEnabled = false
+            appModel.updateDailyPracticeReminderSettings(disabledSettings)
         }
     }
 }

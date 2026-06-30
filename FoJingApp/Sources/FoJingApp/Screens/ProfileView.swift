@@ -304,6 +304,9 @@ struct DailyPracticeReminderView: View {
         .navigationTitle("日课提醒")
         .navigationBarTitleDisplayMode(.inline)
         .sutraPageBackground()
+        .task {
+            await reconcileReminderAuthorization(showMessage: false)
+        }
     }
 
     private var reminderEnabledBinding: Binding<Bool> {
@@ -367,6 +370,23 @@ struct DailyPracticeReminderView: View {
                         statusMessage = "通知权限未开启。请在系统设置中允许通知后再开启提醒。"
                     }
                 }
+            }
+        }
+    }
+
+    private func reconcileReminderAuthorization(showMessage: Bool) async {
+        let settings = appModel.dailyPracticeReminderSettings
+        guard settings.isEnabled else { return }
+
+        let didSync = await DailyPracticeReminderScheduler.sync(settings: settings)
+        guard !didSync else { return }
+
+        await MainActor.run {
+            var disabledSettings = appModel.dailyPracticeReminderSettings
+            disabledSettings.isEnabled = false
+            appModel.updateDailyPracticeReminderSettings(disabledSettings)
+            if showMessage || statusMessage == nil {
+                statusMessage = "系统通知权限已关闭。请在系统设置中允许净诵发送通知后，再开启日课提醒。"
             }
         }
     }
