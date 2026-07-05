@@ -321,7 +321,7 @@ struct DailyPracticeReminderView: View {
                 statusMessage = "日课提醒已关闭。"
 
                 Task {
-                    _ = await DailyPracticeReminderScheduler.sync(settings: settings)
+                    _ = await DailyPracticeReminderScheduler.sync(settings: settings, shouldRemindToday: appModel.firstIncompletePractice != nil)
                 }
                 return
             }
@@ -332,7 +332,8 @@ struct DailyPracticeReminderView: View {
             Task {
                 var enabledSettings = settings
                 enabledSettings.isEnabled = true
-                let didSync = await DailyPracticeReminderScheduler.sync(settings: enabledSettings)
+                let shouldRemindToday = appModel.firstIncompletePractice != nil
+                let didSync = await DailyPracticeReminderScheduler.sync(settings: enabledSettings, shouldRemindToday: shouldRemindToday)
 
                 await MainActor.run {
                     isRequestingAuthorization = false
@@ -342,7 +343,7 @@ struct DailyPracticeReminderView: View {
                     }
 
                     appModel.updateDailyPracticeReminderSettings(enabledSettings)
-                    statusMessage = "日课提醒已设置为每天 \(enabledSettings.timeText)。"
+                    statusMessage = reminderEnabledMessage(settings: enabledSettings, shouldRemindToday: shouldRemindToday)
                 }
             }
         }
@@ -359,10 +360,11 @@ struct DailyPracticeReminderView: View {
             appModel.updateDailyPracticeReminderSettings(settings)
 
             Task {
-                let didSync = await DailyPracticeReminderScheduler.sync(settings: settings)
+                let shouldRemindToday = appModel.firstIncompletePractice != nil
+                let didSync = await DailyPracticeReminderScheduler.sync(settings: settings, shouldRemindToday: shouldRemindToday)
                 await MainActor.run {
                     if didSync {
-                        statusMessage = "日课提醒已更新为每天 \(settings.timeText)。"
+                        statusMessage = reminderEnabledMessage(settings: settings, shouldRemindToday: shouldRemindToday)
                     } else {
                         var disabledSettings = settings
                         disabledSettings.isEnabled = false
@@ -378,7 +380,7 @@ struct DailyPracticeReminderView: View {
         let settings = appModel.dailyPracticeReminderSettings
         guard settings.isEnabled else { return }
 
-        let didSync = await DailyPracticeReminderScheduler.sync(settings: settings)
+        let didSync = await DailyPracticeReminderScheduler.sync(settings: settings, shouldRemindToday: appModel.firstIncompletePractice != nil)
         guard !didSync else { return }
 
         await MainActor.run {
@@ -389,6 +391,13 @@ struct DailyPracticeReminderView: View {
                 statusMessage = "系统通知权限已关闭。请在系统设置中允许净诵发送通知后，再开启日课提醒。"
             }
         }
+    }
+
+    private func reminderEnabledMessage(settings: DailyPracticeReminderSettings, shouldRemindToday: Bool) -> String {
+        if shouldRemindToday {
+            return "如果今日功课未完成，将在 \(settings.timeText) 提醒。"
+        }
+        return "今日功课已完成，将从明天 \(settings.timeText) 开始提醒。"
     }
 
     private static func date(from settings: DailyPracticeReminderSettings) -> Date {

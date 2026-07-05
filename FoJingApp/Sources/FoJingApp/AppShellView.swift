@@ -55,6 +55,11 @@ struct AppShellView: View {
         .task {
             await syncReminderSettings()
         }
+        .onChange(of: appModel.stateRevision) { _, _ in
+            Task {
+                await syncReminderSettings()
+            }
+        }
         .onChange(of: scenePhase) { _, newPhase in
             if newPhase == .active {
                 appModel.refreshDailyPracticeIfNeeded()
@@ -67,7 +72,7 @@ struct AppShellView: View {
 
     private func syncReminderSettings() async {
         let settings = appModel.dailyPracticeReminderSettings
-        let didSync = await DailyPracticeReminderScheduler.sync(settings: settings)
+        let didSync = await DailyPracticeReminderScheduler.sync(settings: settings, shouldRemindToday: appModel.firstIncompletePractice != nil)
 
         guard !didSync, settings.isEnabled else { return }
         await MainActor.run {

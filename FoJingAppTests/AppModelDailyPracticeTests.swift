@@ -128,6 +128,36 @@ final class AppModelDailyPracticeTests: XCTestCase {
         XCTAssertEqual(relaunched.dailyPracticeReminderSettings.timeText, "06:30")
     }
 
+    func testDailyPracticeReminderSchedulesTodayWhenPracticeIsIncomplete() {
+        let now = makeDate(year: 2026, month: 6, day: 12, hour: 12)
+        let components = DailyPracticeReminderScheduler.nextReminderDateComponents(
+            settings: DailyPracticeReminderSettings(isEnabled: true, hour: 20, minute: 0),
+            shouldRemindToday: true,
+            now: now
+        )
+
+        XCTAssertEqual(components.year, 2026)
+        XCTAssertEqual(components.month, 6)
+        XCTAssertEqual(components.day, 12)
+        XCTAssertEqual(components.hour, 20)
+        XCTAssertEqual(components.minute, 0)
+    }
+
+    func testDailyPracticeReminderSkipsTodayWhenPracticeIsComplete() {
+        let now = makeDate(year: 2026, month: 6, day: 12, hour: 12)
+        let components = DailyPracticeReminderScheduler.nextReminderDateComponents(
+            settings: DailyPracticeReminderSettings(isEnabled: true, hour: 20, minute: 0),
+            shouldRemindToday: false,
+            now: now
+        )
+
+        XCTAssertEqual(components.year, 2026)
+        XCTAssertEqual(components.month, 6)
+        XCTAssertEqual(components.day, 13)
+        XCTAssertEqual(components.hour, 20)
+        XCTAssertEqual(components.minute, 0)
+    }
+
     func testAmitabhaSutraUsesFullResourceContent() {
         let appModel = AppModel(userDefaults: userDefaults)
         let scripture = appModel.scripture(id: "amitabha-sutra")
@@ -147,6 +177,17 @@ final class AppModelDailyPracticeTests: XCTestCase {
         components.month = month
         components.day = day
         components.hour = 12
+        return components.date!
+    }
+
+    private func makeDate(year: Int, month: Int, day: Int, hour: Int) -> Date {
+        var components = DateComponents()
+        components.calendar = Calendar(identifier: .gregorian)
+        components.timeZone = .current
+        components.year = year
+        components.month = month
+        components.day = day
+        components.hour = hour
         return components.date!
     }
 }
