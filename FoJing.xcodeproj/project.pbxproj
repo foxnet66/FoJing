@@ -15,6 +15,7 @@
 		74E752429F24D1F72AADFDBF /* ScriptureReaderView.swift in Sources */ = {isa = PBXBuildFile; fileRef = CE91E6EFF016DF3CED76D038 /* ScriptureReaderView.swift */; };
 		852E8E7F9AA0596FDBFBA243 /* heart-sutra.json in Resources */ = {isa = PBXBuildFile; fileRef = A6CDC0C946E312D80A3B97A4 /* heart-sutra.json */; };
 		85B6650C6C00C8785AC365ED /* ChantPracticeView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 89C2286784380140EDE175C4 /* ChantPracticeView.swift */; };
+		899BDB7C936F924BC7C842CC /* diamond-sutra.json in Resources */ = {isa = PBXBuildFile; fileRef = 5AB7276AAF3607C513B1F51B /* diamond-sutra.json */; };
 		8AF74393E26926F4B73761CE /* ProfileView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3778FA52CE72D62569E64800 /* ProfileView.swift */; };
 		ABD81DDF5C859A37148A7904 /* AppTheme.swift in Sources */ = {isa = PBXBuildFile; fileRef = B257948A6DEFE31F29A5B145 /* AppTheme.swift */; };
 		AF94F16B72E3A6F647790141 /* great-compassion-mantra.json in Resources */ = {isa = PBXBuildFile; fileRef = 357683DF9BD46E4AFAF547CB /* great-compassion-mantra.json */; };
@@ -43,6 +44,7 @@
 		3778FA52CE72D62569E64800 /* ProfileView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ProfileView.swift; sourceTree = "<group>"; };
 		4461FD7A485216B788FC8F8E /* AppShellView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AppShellView.swift; sourceTree = "<group>"; };
 		51532FB937586E7F5CEF6414 /* FoJingApp.app */ = {isa = PBXFileReference; includeInIndex = 0; lastKnownFileType = wrapper.application; path = FoJingApp.app; sourceTree = BUILT_PRODUCTS_DIR; };
+		5AB7276AAF3607C513B1F51B /* diamond-sutra.json */ = {isa = PBXFileReference; lastKnownFileType = text.json; path = "diamond-sutra.json"; sourceTree = "<group>"; };
 		64520B4537344BAAAFDCCAE1 /* PrototypeData.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PrototypeData.swift; sourceTree = "<group>"; };
 		89C2286784380140EDE175C4 /* ChantPracticeView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ChantPracticeView.swift; sourceTree = "<group>"; };
 		8D4D10F538AD407ACFC5173E /* DailyPracticeReminderScheduler.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DailyPracticeReminderScheduler.swift; sourceTree = "<group>"; };
@@ -61,6 +63,7 @@
 			isa = PBXGroup;
 			children = (
 				08A51198D395A8D368765580 /* amitabha-sutra.json */,
+				5AB7276AAF3607C513B1F51B /* diamond-sutra.json */,
 				357683DF9BD46E4AFAF547CB /* great-compassion-mantra.json */,
 				A6CDC0C946E312D80A3B97A4 /* heart-sutra.json */,
 			);
@@ -230,6 +233,7 @@
 			files = (
 				D605530755C9AC21D7D5DA62 /* Assets.xcassets in Resources */,
 				B8E810A3BC58F54B9D932316 /* amitabha-sutra.json in Resources */,
+				899BDB7C936F924BC7C842CC /* diamond-sutra.json in Resources */,
 				AF94F16B72E3A6F647790141 /* great-compassion-mantra.json in Resources */,
 				852E8E7F9AA0596FDBFBA243 /* heart-sutra.json in Resources */,
 			);

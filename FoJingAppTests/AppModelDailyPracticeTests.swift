@@ -169,6 +169,20 @@ final class AppModelDailyPracticeTests: XCTestCase {
         XCTAssertEqual(scripture?.traditionalParagraphs.count, 20)
     }
 
+    func testDiamondSutraUsesFullResourceContent() {
+        let appModel = AppModel(userDefaults: userDefaults)
+        let scripture = appModel.scripture(id: "diamond-sutra")
+
+        XCTAssertNotNil(scripture)
+        XCTAssertEqual(scripture?.source.contains("T08n0235"), true)
+        XCTAssertEqual(scripture?.isPrototypeContent, false)
+        XCTAssertEqual(scripture?.simplifiedParagraphs.count, 126)
+        XCTAssertEqual(scripture?.traditionalParagraphs.count, 126)
+        XCTAssertEqual(scripture?.chapters.count, 32)
+        XCTAssertEqual(scripture?.chapters.first?.title, "法会因由分")
+        XCTAssertEqual(scripture?.chapters.last?.title, "应化非真分")
+    }
+
     private func makeDate(year: Int, month: Int, day: Int) -> Date {
         var components = DateComponents()
         components.calendar = Calendar(identifier: .gregorian)

@@ -100,12 +100,14 @@ struct ScriptureReaderView: View {
 
     @State private var isPlaying = false
     @State private var showSettings = false
+    @State private var showChapterList = false
     @State private var activeParagraph = 0
     @State private var didTapComplete = false
     @State private var playbackSeconds = 0.0
     @State private var loopCurrentParagraph = false
     @State private var didRestoreProgress = false
     @State private var scrollToTopTrigger = 0
+    @State private var pendingChapterStart: Int?
     @State private var pendingPracticeCompletion: PracticeItem?
     @State private var showsPracticeCompletionConfirmation = false
     @State private var speechController = ScriptureSpeechController()
@@ -170,6 +172,19 @@ struct ScriptureReaderView: View {
                         proxy.scrollTo(0, anchor: .top)
                     }
                 }
+                .onChange(of: pendingChapterStart) { _, newValue in
+                    guard let newValue, !paragraphs.isEmpty else { return }
+                    let index = min(max(newValue, 0), paragraphs.count - 1)
+                    speechController.stop()
+                    isPlaying = false
+                    activeParagraph = index
+                    playbackSeconds = paragraphStartSeconds(index)
+                    appModel.saveProgress(scripture: scripture, paragraphIndex: index)
+                    withAnimation(.easeInOut(duration: 0.35)) {
+                        proxy.scrollTo(index, anchor: .top)
+                    }
+                    pendingChapterStart = nil
+                }
                 .onAppear {
                     configureSpeechCallbacks()
                     restoreReadingProgress(with: proxy)
@@ -188,6 +203,14 @@ struct ScriptureReaderView: View {
                     .foregroundStyle(primaryReaderText)
             }
             ToolbarItemGroup(placement: .topBarTrailing) {
+                if !scripture.chapters.isEmpty {
+                    Button {
+                        showChapterList = true
+                    } label: {
+                        Image(systemName: "list.bullet")
+                    }
+                    .accessibilityLabel("目录")
+                }
                 Button {
                     showSettings = true
                 } label: {
@@ -212,6 +235,16 @@ struct ScriptureReaderView: View {
                 showPinyin: readerSettingBinding(\.showPinyin)
             )
             .presentationDetents([.medium])
+        }
+        .sheet(isPresented: $showChapterList) {
+            ScriptureChapterListSheet(
+                chapters: scripture.chapters,
+                currentParagraph: activeParagraph,
+                paragraphCount: paragraphs.count
+            ) { chapter in
+                pendingChapterStart = chapter.paragraphStart
+            }
+            .presentationDetents([.medium, .large])
         }
         .confirmationDialog(
             practiceCompletionDialogTitle,
@@ -360,6 +393,68 @@ struct ScriptureReaderView: View {
                 .frame(height: 1)
         }
         .sensoryFeedback(.success, trigger: didTapComplete)
+    }
+}
+
+struct ScriptureChapterListSheet: View {
+    @Environment(\.dismiss) private var dismiss
+
+    let chapters: [ScriptureChapter]
+    let currentParagraph: Int
+    let paragraphCount: Int
+    let onSelect: (ScriptureChapter) -> Void
+
+    var body: some View {
+        NavigationStack {
+            List(chapters) { chapter in
+                Button {
+                    onSelect(chapter)
+                    dismiss()
+                } label: {
+                    HStack(spacing: 12) {
+                        VStack(alignment: .leading, spacing: 4) {
+                            Text(chapter.title)
+                                .font(.body)
+                                .foregroundStyle(.primary)
+                            Text(chapterPositionText(chapter))
+                                .font(.caption)
+                                .foregroundStyle(.secondary)
+                        }
+                        Spacer()
+                        if chapter.id == currentChapterID {
+                            Image(systemName: "checkmark")
+                                .font(.subheadline.weight(.semibold))
+                                .foregroundStyle(AppTheme.bamboo)
+                        }
+                    }
+                    .contentShape(Rectangle())
+                }
+                .buttonStyle(.plain)
+            }
+            .navigationTitle("目录")
+            .navigationBarTitleDisplayMode(.inline)
+            .toolbar {
+                ToolbarItem(placement: .topBarTrailing) {
+                    Button("完成") {
+                        dismiss()
+                    }
+                }
+            }
+        }
+        .tint(AppTheme.bamboo)
+    }
+
+    private var currentChapterID: String? {
+        chapters
+            .filter { $0.paragraphStart <= currentParagraph }
+            .max { $0.paragraphStart < $1.paragraphStart }?
+            .id
+    }
+
+    private func chapterPositionText(_ chapter: ScriptureChapter) -> String {
+        guard paragraphCount > 0 else { return "第 1 段" }
+        let position = min(max(chapter.paragraphStart + 1, 1), paragraphCount)
+        return "第 \(position) 段"
     }
 }
 
