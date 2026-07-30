@@ -380,7 +380,7 @@ struct ScriptureReaderView: View {
                         .font(.subheadline.weight(.semibold))
                         .lineLimit(1)
                         .minimumScaleFactor(0.8)
-                    Text(playerStatusText)
+                    Text(playerDetailText)
                         .font(.caption)
                         .foregroundStyle(secondaryReaderText)
                         .lineLimit(1)
@@ -582,6 +582,25 @@ private extension ScriptureReaderView {
         return appModel.readerSettings.autoScroll ? "自动滚动开启" : "手动阅读"
     }
 
+    var playerDetailText: String {
+        "\(currentChapterText) · \(playerStatusText)"
+    }
+
+    var currentChapterText: String {
+        guard let currentChapter else { return "全文" }
+        guard scripture.chapters.count > 1,
+              let chapterIndex = scripture.chapters.firstIndex(of: currentChapter) else {
+            return currentChapter.title
+        }
+        return "第\(chineseNumeral(chapterIndex + 1))分 · \(currentChapter.title)"
+    }
+
+    var currentChapter: ScriptureChapter? {
+        scripture.chapters
+            .filter { $0.paragraphStart <= activeParagraph }
+            .max { $0.paragraphStart < $1.paragraphStart }
+    }
+
     var isLinkedPracticeComplete: Bool {
         guard let item = linkedPractice else { return false }
         return item.isComplete
@@ -770,6 +789,24 @@ private extension ScriptureReaderView {
         let minutes = totalSeconds / 60
         let seconds = totalSeconds % 60
         return String(format: "%02d:%02d", minutes, seconds)
+    }
+
+    func chineseNumeral(_ number: Int) -> String {
+        let digits = ["零", "一", "二", "三", "四", "五", "六", "七", "八", "九"]
+        switch number {
+        case 1...9:
+            return digits[number]
+        case 10:
+            return "十"
+        case 11...19:
+            return "十\(digits[number % 10])"
+        case 20...99:
+            let tens = number / 10
+            let ones = number % 10
+            return ones == 0 ? "\(digits[tens])十" : "\(digits[tens])十\(digits[ones])"
+        default:
+            return "\(number)"
+        }
     }
 
     func pinyinText(for text: String, at paragraphIndex: Int) -> String {
