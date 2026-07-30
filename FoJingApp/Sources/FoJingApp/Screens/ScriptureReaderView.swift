@@ -149,13 +149,30 @@ struct ScriptureReaderView: View {
                     LazyVStack(alignment: .leading, spacing: 22) {
                         ForEach(Array(paragraphs.enumerated()), id: \.offset) { index, text in
                             VStack(alignment: .leading, spacing: 8) {
-                                Text(text)
-                                    .font(.system(size: appModel.readerSettings.fontSize, weight: .regular, design: .serif))
-                                    .lineSpacing(10)
-                                    .foregroundStyle(primaryReaderText)
-                                    .padding(.vertical, 4)
-                                    .padding(.horizontal, 10)
-                                    .background(paragraphHighlightColor(for: index), in: RoundedRectangle(cornerRadius: 6))
+                                HStack(alignment: .top, spacing: 8) {
+                                    Text(text)
+                                        .font(.system(size: appModel.readerSettings.fontSize, weight: .regular, design: .serif))
+                                        .lineSpacing(10)
+                                        .foregroundStyle(primaryReaderText)
+                                        .padding(.vertical, 4)
+                                        .padding(.horizontal, 10)
+                                        .frame(maxWidth: .infinity, alignment: .leading)
+                                        .background(paragraphHighlightColor(for: index), in: RoundedRectangle(cornerRadius: 6))
+
+                                    if !scripture.isPrototypeContent {
+                                        Button {
+                                            appModel.toggleParagraphBookmark(scripture: scripture, paragraphIndex: index)
+                                        } label: {
+                                            Image(systemName: appModel.isParagraphBookmarked(scripture: scripture, paragraphIndex: index) ? "bookmark.fill" : "bookmark")
+                                                .font(.caption)
+                                                .foregroundStyle(appModel.isParagraphBookmarked(scripture: scripture, paragraphIndex: index) ? AppTheme.gold : secondaryReaderText)
+                                                .frame(width: 28, height: 28)
+                                        }
+                                        .buttonStyle(.plain)
+                                        .accessibilityLabel(appModel.isParagraphBookmarked(scripture: scripture, paragraphIndex: index) ? "取消段落书签" : "收藏此段")
+                                        .padding(.top, 6)
+                                    }
+                                }
 
                                 if appModel.readerSettings.showPinyin {
                                     Text(pinyinText(for: text, at: index))

@@ -11,7 +11,7 @@ struct ProfileView: View {
                 NavigationLink {
                     BookmarkListView(appModel: appModel)
                 } label: {
-                    profileRow(title: "书签", detail: "\(appModel.bookmarkedScriptureIDs.count) 条", icon: "bookmark")
+                    profileRow(title: "书签", detail: "\(appModel.totalBookmarkCount) 条", icon: "bookmark")
                 }
                 .profileListRowStyle()
                 NavigationLink {
@@ -415,23 +415,63 @@ struct BookmarkListView: View {
         appModel.scriptures.filter { appModel.bookmarkedScriptureIDs.contains($0.id) }
     }
 
+    private var paragraphBookmarkItems: [ParagraphBookmarkItem] {
+        appModel.paragraphBookmarks.compactMap { bookmark in
+            guard let scripture = appModel.scripture(id: bookmark.scriptureID),
+                  paragraphText(for: scripture, at: bookmark.paragraphIndex) != nil else {
+                return nil
+            }
+            return ParagraphBookmarkItem(bookmark: bookmark, scripture: scripture)
+        }
+    }
+
     var body: some View {
         List {
-            if bookmarkedScriptures.isEmpty {
+            if bookmarkedScriptures.isEmpty, paragraphBookmarkItems.isEmpty {
                 Section {
                     VStack(alignment: .leading, spacing: 8) {
                         Label("暂无书签", systemImage: "bookmark")
                             .font(.headline)
                             .foregroundStyle(AppTheme.ink)
-                        Text("阅读经文时，点击右上角书签按钮即可收藏。")
+                        Text("阅读经文时，点击右上角书签按钮收藏整部经，或点击段落旁的小书签收藏具体段落。")
                             .font(.subheadline)
                             .foregroundStyle(AppTheme.secondaryInk)
                     }
                     .padding(.vertical, 8)
                     .profileListRowStyle()
                 }
-            } else {
-                Section("全部书签") {
+            }
+
+            if !paragraphBookmarkItems.isEmpty {
+                Section("段落书签") {
+                    ForEach(paragraphBookmarkItems) { item in
+                        NavigationLink {
+                            ScriptureReaderView(
+                                appModel: appModel,
+                                scripture: item.scripture,
+                                mode: item.scripture.category == "咒语" ? .chanting : .reading,
+                                practiceID: nil,
+                                initialParagraphIndex: item.bookmark.paragraphIndex,
+                                highlightedParagraphIndex: item.bookmark.paragraphIndex
+                            )
+                        } label: {
+                            paragraphBookmarkRow(item)
+                        }
+                        .profileListRowStyle()
+                    }
+                    .onDelete { offsets in
+                        let items = paragraphBookmarkItems
+                        for offset in offsets {
+                            guard items.indices.contains(offset) else { continue }
+                            let item = items[offset]
+                            appModel.toggleParagraphBookmark(scripture: item.scripture, paragraphIndex: item.bookmark.paragraphIndex)
+                        }
+                    }
+                }
+            }
+
+            if !bookmarkedScriptures.isEmpty {
+                Section("经文书签") {
                     ForEach(bookmarkedScriptures) { scripture in
                         NavigationLink {
                             BookmarkDetailView(appModel: appModel, scripture: scripture)
@@ -447,6 +487,38 @@ struct BookmarkListView: View {
         .navigationTitle("书签")
         .navigationBarTitleDisplayMode(.inline)
         .sutraPageBackground()
+    }
+
+    private func paragraphBookmarkRow(_ item: ParagraphBookmarkItem) -> some View {
+        HStack(alignment: .top, spacing: 12) {
+            Image(systemName: "bookmark.fill")
+                .font(.title3)
+                .foregroundStyle(AppTheme.gold)
+                .frame(width: 26)
+
+            VStack(alignment: .leading, spacing: 6) {
+                HStack(spacing: 8) {
+                    Text(item.scripture.shortTitle)
+                        .font(.body.weight(.medium))
+                        .foregroundStyle(AppTheme.ink)
+                    Text("第 \(item.bookmark.paragraphIndex + 1) 段")
+                        .font(.caption)
+                        .foregroundStyle(AppTheme.secondaryInk)
+                }
+
+                if let chapterTitle = chapterTitle(for: item.scripture, paragraphIndex: item.bookmark.paragraphIndex) {
+                    Text(chapterTitle)
+                        .font(.caption.weight(.medium))
+                        .foregroundStyle(AppTheme.bamboo)
+                }
+
+                Text(paragraphSnippet(for: item.scripture, at: item.bookmark.paragraphIndex))
+                    .font(.caption)
+                    .lineLimit(2)
+                    .foregroundStyle(AppTheme.secondaryInk)
+            }
+        }
+        .padding(.vertical, 4)
     }
 
     private func bookmarkRow(_ scripture: Scripture) -> some View {
@@ -471,6 +543,36 @@ struct BookmarkListView: View {
             }
         }
         .padding(.vertical, 4)
+    }
+
+    private func paragraphText(for scripture: Scripture, at index: Int) -> String? {
+        let paragraphs = appModel.readerSettings.useTraditional ? scripture.traditionalParagraphs : scripture.simplifiedParagraphs
+        guard paragraphs.indices.contains(index) else { return nil }
+        return paragraphs[index]
+    }
+
+    private func paragraphSnippet(for scripture: Scripture, at index: Int) -> String {
+        paragraphText(for: scripture, at: index)?
+            .replacingOccurrences(of: "\\s+", with: " ", options: .regularExpression)
+            .trimmingCharacters(in: .whitespacesAndNewlines)
+            .prefix(72)
+            .description ?? ""
+    }
+
+    private func chapterTitle(for scripture: Scripture, paragraphIndex: Int) -> String? {
+        scripture.chapters
+            .filter { $0.paragraphStart <= paragraphIndex }
+            .max { $0.paragraphStart < $1.paragraphStart }?
+            .title
+    }
+}
+
+private struct ParagraphBookmarkItem: Identifiable {
+    let bookmark: ParagraphBookmark
+    let scripture: Scripture
+
+    var id: String {
+        bookmark.id
     }
 }
 

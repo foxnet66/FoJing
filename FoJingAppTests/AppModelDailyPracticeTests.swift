@@ -201,6 +201,25 @@ final class AppModelDailyPracticeTests: XCTestCase {
         XCTAssertTrue(results.allSatisfy { !$0.scripture.isPrototypeContent })
     }
 
+    func testParagraphBookmarksPersistAndToggle() {
+        let bookmarkDate = makeDate(year: 2026, month: 7, day: 30)
+        let appModel = AppModel(userDefaults: userDefaults, dateProvider: { bookmarkDate })
+        let scripture = ScriptureCatalog.diamondSutra
+
+        appModel.toggleParagraphBookmark(scripture: scripture, paragraphIndex: 36)
+
+        XCTAssertTrue(appModel.isParagraphBookmarked(scripture: scripture, paragraphIndex: 36))
+        XCTAssertEqual(appModel.paragraphBookmarks.count, 1)
+        XCTAssertEqual(appModel.paragraphBookmarks[0].scriptureID, "diamond-sutra")
+        XCTAssertEqual(appModel.paragraphBookmarks[0].paragraphIndex, 36)
+
+        let relaunched = AppModel(userDefaults: userDefaults)
+        XCTAssertTrue(relaunched.isParagraphBookmarked(scripture: scripture, paragraphIndex: 36))
+
+        relaunched.toggleParagraphBookmark(scripture: scripture, paragraphIndex: 36)
+        XCTAssertFalse(relaunched.isParagraphBookmarked(scripture: scripture, paragraphIndex: 36))
+    }
+
     private func makeDate(year: Int, month: Int, day: Int) -> Date {
         var components = DateComponents()
         components.calendar = Calendar(identifier: .gregorian)

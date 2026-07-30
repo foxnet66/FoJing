@@ -158,6 +158,16 @@ struct DailyPracticeRecord: Identifiable, Hashable, Codable {
     let completedItems: [String]
 }
 
+struct ParagraphBookmark: Identifiable, Hashable, Codable {
+    let scriptureID: String
+    let paragraphIndex: Int
+    let createdAt: Date
+
+    var id: String {
+        "\(scriptureID)-\(paragraphIndex)"
+    }
+}
+
 @Observable
 final class AppModel {
     var scriptures = ScriptureCatalog.scriptures
@@ -172,6 +182,7 @@ final class AppModel {
         }
     }
     var bookmarkedScriptureIDs: Set<String> = []
+    var paragraphBookmarks: [ParagraphBookmark] = []
     var readingProgress: [String: Int] = [:]
     var recentScriptureID: String?
     var dedicationRecords: [DedicationRecord] = []
@@ -227,6 +238,10 @@ final class AppModel {
 
     var hasSavedDedicationToday: Bool {
         dedicationRecords.contains { Calendar.current.isDateInToday($0.date) }
+    }
+
+    var totalBookmarkCount: Int {
+        bookmarkedScriptureIDs.count + paragraphBookmarks.count
     }
 
     var recentScripture: Scripture {
@@ -320,6 +335,26 @@ final class AppModel {
             bookmarks.insert(scripture.id)
         }
         bookmarkedScriptureIDs = bookmarks
+        save()
+    }
+
+    func isParagraphBookmarked(scripture: Scripture, paragraphIndex: Int) -> Bool {
+        paragraphBookmarks.contains {
+            $0.scriptureID == scripture.id && $0.paragraphIndex == paragraphIndex
+        }
+    }
+
+    func toggleParagraphBookmark(scripture: Scripture, paragraphIndex: Int) {
+        guard !scripture.isPrototypeContent else { return }
+        let safeIndex = min(max(paragraphIndex, 0), max(scripture.simplifiedParagraphs.count, scripture.traditionalParagraphs.count) - 1)
+        guard safeIndex >= 0 else { return }
+
+        if let existingIndex = paragraphBookmarks.firstIndex(where: { $0.scriptureID == scripture.id && $0.paragraphIndex == safeIndex }) {
+            paragraphBookmarks.remove(at: existingIndex)
+        } else {
+            let bookmark = ParagraphBookmark(scriptureID: scripture.id, paragraphIndex: safeIndex, createdAt: dateProvider())
+            paragraphBookmarks = [bookmark] + paragraphBookmarks
+        }
         save()
     }
 
@@ -457,6 +492,7 @@ final class AppModel {
             dailyPracticeReminderSettings = state.dailyPracticeReminderSettings ?? DailyPracticeReminderSettings()
             readerSettings = state.readerSettings
             bookmarkedScriptureIDs = Set(state.bookmarkedScriptureIDs)
+            paragraphBookmarks = state.paragraphBookmarks ?? []
             readingProgress = state.readingProgress
             recentScriptureID = state.recentScriptureID
             dedicationRecords = state.dedicationRecords
@@ -478,6 +514,7 @@ final class AppModel {
             dailyPracticeReminderSettings: dailyPracticeReminderSettings,
             readerSettings: readerSettings,
             bookmarkedScriptureIDs: Array(bookmarkedScriptureIDs),
+            paragraphBookmarks: paragraphBookmarks,
             readingProgress: readingProgress,
             recentScriptureID: recentScriptureID,
             dedicationRecords: dedicationRecords,
@@ -608,6 +645,7 @@ private struct PersistedState: Codable {
     let dailyPracticeReminderSettings: DailyPracticeReminderSettings?
     let readerSettings: ReaderSettings
     let bookmarkedScriptureIDs: [String]
+    let paragraphBookmarks: [ParagraphBookmark]?
     let readingProgress: [String: Int]
     let recentScriptureID: String?
     let dedicationRecords: [DedicationRecord]
