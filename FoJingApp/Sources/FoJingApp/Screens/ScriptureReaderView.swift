@@ -98,6 +98,7 @@ struct ScriptureReaderView: View {
     let mode: ReaderMode
     let practiceID: String?
     let initialParagraphIndex: Int?
+    let highlightedParagraphIndex: Int?
 
     @State private var isPlaying = false
     @State private var showSettings = false
@@ -108,6 +109,7 @@ struct ScriptureReaderView: View {
     @State private var loopCurrentParagraph = false
     @State private var didRestoreProgress = false
     @State private var scrollToTopTrigger = 0
+    @State private var transientHighlightedParagraph: Int?
     @State private var pendingChapterStart: Int?
     @State private var pendingPracticeCompletion: PracticeItem?
     @State private var showsPracticeCompletionConfirmation = false
@@ -115,12 +117,20 @@ struct ScriptureReaderView: View {
 
     private let playbackTimer = Timer.publish(every: 1, on: .main, in: .common).autoconnect()
 
-    init(appModel: AppModel, scripture: Scripture, mode: ReaderMode, practiceID: String?, initialParagraphIndex: Int? = nil) {
+    init(
+        appModel: AppModel,
+        scripture: Scripture,
+        mode: ReaderMode,
+        practiceID: String?,
+        initialParagraphIndex: Int? = nil,
+        highlightedParagraphIndex: Int? = nil
+    ) {
         self.appModel = appModel
         self.scripture = scripture
         self.mode = mode
         self.practiceID = practiceID
         self.initialParagraphIndex = initialParagraphIndex
+        self.highlightedParagraphIndex = highlightedParagraphIndex
     }
 
     private var title: String {
@@ -145,7 +155,7 @@ struct ScriptureReaderView: View {
                                     .foregroundStyle(primaryReaderText)
                                     .padding(.vertical, 4)
                                     .padding(.horizontal, 10)
-                                    .background(isPlaying && index == activeParagraph ? AppTheme.gold.opacity(0.16) : .clear, in: RoundedRectangle(cornerRadius: 6))
+                                    .background(paragraphHighlightColor(for: index), in: RoundedRectangle(cornerRadius: 6))
 
                                 if appModel.readerSettings.showPinyin {
                                     Text(pinyinText(for: text, at: index))
@@ -186,6 +196,7 @@ struct ScriptureReaderView: View {
                     let index = min(max(newValue, 0), paragraphs.count - 1)
                     speechController.stop()
                     isPlaying = false
+                    transientHighlightedParagraph = nil
                     activeParagraph = index
                     playbackSeconds = paragraphStartSeconds(index)
                     appModel.saveProgress(scripture: scripture, paragraphIndex: index)
@@ -594,6 +605,16 @@ private extension ScriptureReaderView {
         return appModel.practiceItems.first { $0.id == practiceID }
     }
 
+    func paragraphHighlightColor(for index: Int) -> Color {
+        if transientHighlightedParagraph == index {
+            return AppTheme.gold.opacity(0.28)
+        }
+        if isPlaying && index == activeParagraph {
+            return AppTheme.gold.opacity(0.16)
+        }
+        return .clear
+    }
+
     func readerSettingBinding<Value>(_ keyPath: WritableKeyPath<ReaderSettings, Value>) -> Binding<Value> {
         Binding {
             appModel.readerSettings[keyPath: keyPath]
@@ -630,6 +651,7 @@ private extension ScriptureReaderView {
     func returnToBeginning() {
         speechController.stop()
         isPlaying = false
+        transientHighlightedParagraph = nil
         activeParagraph = 0
         playbackSeconds = 0
         appModel.resetProgress(scripture: scripture)
@@ -645,6 +667,10 @@ private extension ScriptureReaderView {
         activeParagraph = index
         playbackSeconds = paragraphStartSeconds(index)
         appModel.saveProgress(scripture: scripture, paragraphIndex: index)
+        if let highlightedParagraphIndex {
+            transientHighlightedParagraph = min(max(highlightedParagraphIndex, 0), paragraphs.count - 1)
+            clearTransientHighlightAfterDelay()
+        }
         DispatchQueue.main.async {
             if index > 0 {
                 proxy.scrollTo(index, anchor: .top)
@@ -657,6 +683,7 @@ private extension ScriptureReaderView {
             speechController.stop()
             isPlaying = false
         } else {
+            transientHighlightedParagraph = nil
             if playbackSeconds >= playbackDuration {
                 playbackSeconds = 0
                 activeParagraph = 0
@@ -674,6 +701,14 @@ private extension ScriptureReaderView {
         }
 
         playbackSeconds = nextSecond
+    }
+
+    func clearTransientHighlightAfterDelay() {
+        DispatchQueue.main.asyncAfter(deadline: .now() + 2.4) {
+            withAnimation(.easeOut(duration: 0.3)) {
+                transientHighlightedParagraph = nil
+            }
+        }
     }
 
     func startReadingAloud() {

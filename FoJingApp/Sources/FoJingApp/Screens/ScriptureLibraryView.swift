@@ -223,7 +223,8 @@ struct ScriptureLibraryView: View {
                         scripture: result.scripture,
                         mode: result.scripture.category == "咒语" ? .chanting : .reading,
                         practiceID: nil,
-                        initialParagraphIndex: result.paragraphIndex
+                        initialParagraphIndex: result.paragraphIndex,
+                        highlightedParagraphIndex: result.paragraphIndex
                     )
                 } label: {
                     PaperCard {
