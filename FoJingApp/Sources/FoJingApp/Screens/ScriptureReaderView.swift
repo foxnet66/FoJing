@@ -97,6 +97,7 @@ struct ScriptureReaderView: View {
     let scripture: Scripture
     let mode: ReaderMode
     let practiceID: String?
+    let initialParagraphIndex: Int?
 
     @State private var isPlaying = false
     @State private var showSettings = false
@@ -113,6 +114,14 @@ struct ScriptureReaderView: View {
     @State private var speechController = ScriptureSpeechController()
 
     private let playbackTimer = Timer.publish(every: 1, on: .main, in: .common).autoconnect()
+
+    init(appModel: AppModel, scripture: Scripture, mode: ReaderMode, practiceID: String?, initialParagraphIndex: Int? = nil) {
+        self.appModel = appModel
+        self.scripture = scripture
+        self.mode = mode
+        self.practiceID = practiceID
+        self.initialParagraphIndex = initialParagraphIndex
+    }
 
     private var title: String {
         scripture.shortTitle
@@ -631,10 +640,11 @@ private extension ScriptureReaderView {
         guard !didRestoreProgress else { return }
         didRestoreProgress = true
         guard !paragraphs.isEmpty else { return }
-        let savedIndex = appModel.readingProgress[scripture.id] ?? 0
+        let savedIndex = initialParagraphIndex ?? appModel.readingProgress[scripture.id] ?? 0
         let index = min(max(savedIndex, 0), paragraphs.count - 1)
         activeParagraph = index
         playbackSeconds = paragraphStartSeconds(index)
+        appModel.saveProgress(scripture: scripture, paragraphIndex: index)
         DispatchQueue.main.async {
             if index > 0 {
                 proxy.scrollTo(index, anchor: .top)

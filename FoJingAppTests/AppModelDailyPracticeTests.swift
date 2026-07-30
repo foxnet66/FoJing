@@ -183,6 +183,24 @@ final class AppModelDailyPracticeTests: XCTestCase {
         XCTAssertEqual(scripture?.chapters.last?.title, "应化非真分")
     }
 
+    func testSearchScripturesFindsFullTextParagraphs() {
+        let appModel = AppModel(userDefaults: userDefaults)
+        let results = appModel.searchScriptures(matching: "应无所住")
+
+        let diamondResult = results.first { $0.scripture.id == "diamond-sutra" && $0.paragraphIndex == 36 }
+        XCTAssertNotNil(diamondResult)
+        XCTAssertEqual(diamondResult?.paragraphIndex, 36)
+        XCTAssertEqual(diamondResult?.chapterTitle, "庄严净土分")
+        XCTAssertEqual(diamondResult?.snippet.contains("应无所住"), true)
+    }
+
+    func testSearchScripturesSkipsPrototypeContent() {
+        let appModel = AppModel(userDefaults: userDefaults)
+        let results = appModel.searchScriptures(matching: "待接入全文")
+
+        XCTAssertTrue(results.allSatisfy { !$0.scripture.isPrototypeContent })
+    }
+
     private func makeDate(year: Int, month: Int, day: Int) -> Date {
         var components = DateComponents()
         components.calendar = Calendar(identifier: .gregorian)

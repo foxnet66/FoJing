@@ -64,6 +64,23 @@ struct ScriptureNote: Identifiable, Hashable, Codable {
     let text: String
 }
 
+struct ScriptureSearchResult: Identifiable, Hashable {
+    let scripture: Scripture
+    let paragraphIndex: Int
+    let snippet: String
+
+    var id: String {
+        "\(scripture.id)-\(paragraphIndex)"
+    }
+
+    var chapterTitle: String? {
+        scripture.chapters
+            .filter { $0.paragraphStart <= paragraphIndex }
+            .max { $0.paragraphStart < $1.paragraphStart }?
+            .title
+    }
+}
+
 enum ReaderAppearance: String, CaseIterable, Hashable, Codable {
     case system
     case light
@@ -231,6 +248,64 @@ final class AppModel {
 
     func scripture(for practice: PracticeItem) -> Scripture? {
         scripture(id: practice.scriptureID)
+    }
+
+    func searchScriptures(matching rawQuery: String, useTraditional: Bool? = nil, limit: Int = 80) -> [ScriptureSearchResult] {
+        let query = Self.normalizedSearchText(rawQuery)
+        guard !query.isEmpty else { return [] }
+
+        let displayTraditional = useTraditional ?? readerSettings.useTraditional
+        var results: [ScriptureSearchResult] = []
+
+        for scripture in scriptures where !scripture.isPrototypeContent {
+            let displayParagraphs = displayTraditional ? scripture.traditionalParagraphs : scripture.simplifiedParagraphs
+            let alternateParagraphs = displayTraditional ? scripture.simplifiedParagraphs : scripture.traditionalParagraphs
+            var matchedParagraphs = Set<Int>()
+
+            let metadata = [
+                scripture.title,
+                scripture.shortTitle,
+                scripture.translator,
+                scripture.dynasty,
+                scripture.category
+            ].map(Self.normalizedSearchText)
+            if metadata.contains(where: { $0.localizedStandardContains(query) }) {
+                results.append(
+                    ScriptureSearchResult(
+                        scripture: scripture,
+                        paragraphIndex: 0,
+                        snippet: "经文信息匹配：\(scripture.title) · \(scripture.subtitle)"
+                    )
+                )
+                matchedParagraphs.insert(0)
+            }
+
+            for index in displayParagraphs.indices {
+                guard results.count < limit else { return results }
+                let displayText = displayParagraphs[index]
+                let alternateText = alternateParagraphs.indices.contains(index) ? alternateParagraphs[index] : ""
+                let normalizedDisplay = Self.normalizedSearchText(displayText)
+                let normalizedAlternate = Self.normalizedSearchText(alternateText)
+                guard normalizedDisplay.localizedStandardContains(query) || normalizedAlternate.localizedStandardContains(query) else {
+                    continue
+                }
+                guard !matchedParagraphs.contains(index) else { continue }
+                results.append(
+                    ScriptureSearchResult(
+                        scripture: scripture,
+                        paragraphIndex: index,
+                        snippet: Self.searchSnippet(from: displayText, query: rawQuery)
+                    )
+                )
+                matchedParagraphs.insert(index)
+            }
+
+            if results.count >= limit {
+                return results
+            }
+        }
+
+        return results
     }
 
     func isBookmarked(_ scripture: Scripture) -> Bool {
@@ -475,6 +550,33 @@ final class AppModel {
                 kind: item.kind
             )
         }
+    }
+
+    private static func normalizedSearchText(_ text: String) -> String {
+        text
+            .trimmingCharacters(in: .whitespacesAndNewlines)
+            .replacingOccurrences(of: "\\s+", with: "", options: .regularExpression)
+    }
+
+    private static func searchSnippet(from text: String, query: String) -> String {
+        let flattened = text
+            .replacingOccurrences(of: "\\s+", with: " ", options: .regularExpression)
+            .trimmingCharacters(in: .whitespacesAndNewlines)
+        guard !flattened.isEmpty else { return "" }
+
+        let trimmedQuery = query.trimmingCharacters(in: .whitespacesAndNewlines)
+        guard !trimmedQuery.isEmpty,
+              let range = flattened.range(of: trimmedQuery, options: [.caseInsensitive, .diacriticInsensitive]) else {
+            return String(flattened.prefix(88))
+        }
+
+        let before = flattened.distance(from: flattened.startIndex, to: range.lowerBound)
+        let after = flattened.distance(from: range.upperBound, to: flattened.endIndex)
+        let snippetStart = flattened.index(range.lowerBound, offsetBy: -min(before, 28))
+        let snippetEnd = flattened.index(range.upperBound, offsetBy: min(after, 44))
+        let prefix = snippetStart == flattened.startIndex ? "" : "..."
+        let suffix = snippetEnd == flattened.endIndex ? "" : "..."
+        return prefix + String(flattened[snippetStart..<snippetEnd]) + suffix
     }
 
     @discardableResult

@@ -13,23 +13,20 @@ struct ScriptureLibraryView: View {
     }
 
     private var listTitle: String {
-        trimmedQuery.isEmpty ? selectedCategory : "搜索结果"
+        trimmedQuery.isEmpty ? selectedCategory : "全文搜索"
     }
 
     private var visibleScriptures: [Scripture] {
         appModel.scriptures.filter { scripture in
-            if trimmedQuery.isEmpty {
-                if selectedCategory == "日课" {
-                    return dailyPracticeScriptureIDs.contains(scripture.id)
-                }
-                return scripture.category == selectedCategory
+            if selectedCategory == "日课" {
+                return dailyPracticeScriptureIDs.contains(scripture.id)
             }
-
-            return scripture.title.localizedStandardContains(trimmedQuery) ||
-                scripture.shortTitle.localizedStandardContains(trimmedQuery) ||
-                scripture.translator.localizedStandardContains(trimmedQuery) ||
-                scripture.category.localizedStandardContains(trimmedQuery)
+            return scripture.category == selectedCategory
         }
+    }
+
+    private var searchResults: [ScriptureSearchResult] {
+        appModel.searchScriptures(matching: trimmedQuery)
     }
 
     private var recentReadableScriptures: [Scripture] {
@@ -61,8 +58,12 @@ struct ScriptureLibraryView: View {
                 if trimmedQuery.isEmpty, !recentReadableScriptures.isEmpty {
                     recentReadingSection
                 }
-                categoryScroller
-                scriptureList
+                if trimmedQuery.isEmpty {
+                    categoryScroller
+                    scriptureList
+                } else {
+                    searchResultList
+                }
             }
             .padding(20)
             .padding(.bottom, AppTheme.tabContentBottomPadding)
@@ -200,6 +201,74 @@ struct ScriptureLibraryView: View {
                     .foregroundStyle(AppTheme.secondaryInk)
                     .frame(maxWidth: .infinity, alignment: .center)
                     .padding(.vertical, 28)
+            }
+        }
+    }
+
+    private var searchResultList: some View {
+        VStack(alignment: .leading, spacing: 12) {
+            HStack {
+                Text(listTitle)
+                    .font(.headline)
+                Spacer()
+                Text("\(searchResults.count) 条")
+                    .font(.caption)
+                    .foregroundStyle(AppTheme.secondaryInk)
+            }
+
+            ForEach(searchResults) { result in
+                NavigationLink {
+                    ScriptureReaderView(
+                        appModel: appModel,
+                        scripture: result.scripture,
+                        mode: result.scripture.category == "咒语" ? .chanting : .reading,
+                        practiceID: nil,
+                        initialParagraphIndex: result.paragraphIndex
+                    )
+                } label: {
+                    PaperCard {
+                        VStack(alignment: .leading, spacing: 10) {
+                            HStack(alignment: .firstTextBaseline, spacing: 8) {
+                                Text(result.scripture.shortTitle)
+                                    .font(.headline)
+                                    .foregroundStyle(AppTheme.ink)
+                                Text("第 \(result.paragraphIndex + 1) 段")
+                                    .font(.caption)
+                                    .foregroundStyle(AppTheme.secondaryInk)
+                                Spacer()
+                                Image(systemName: "arrow.turn.down.right")
+                                    .font(.caption.weight(.semibold))
+                                    .foregroundStyle(AppTheme.secondaryInk)
+                            }
+
+                            if let chapterTitle = result.chapterTitle {
+                                Text(chapterTitle)
+                                    .font(.caption.weight(.medium))
+                                    .foregroundStyle(AppTheme.bamboo)
+                            }
+
+                            Text(result.snippet)
+                                .font(.subheadline)
+                                .lineSpacing(4)
+                                .foregroundStyle(AppTheme.secondaryInk)
+                                .lineLimit(3)
+                        }
+                    }
+                }
+                .buttonStyle(.plain)
+            }
+
+            if searchResults.isEmpty {
+                VStack(spacing: 10) {
+                    Image(systemName: "magnifyingglass")
+                        .font(.title2)
+                        .foregroundStyle(AppTheme.secondaryInk)
+                    Text("没有找到匹配的经文内容")
+                        .font(.subheadline)
+                        .foregroundStyle(AppTheme.secondaryInk)
+                }
+                .frame(maxWidth: .infinity)
+                .padding(.vertical, 28)
             }
         }
     }
