@@ -783,7 +783,7 @@ enum ScriptureCatalog {
     static let medicineBuddhaSutra: Scripture = scriptureStub(id: "medicine-buddha-sutra", title: "药师琉璃光如来本愿功德经", shortTitle: "药师经", translator: "玄奘", dynasty: "唐", category: "药师", durationMinutes: 35, hasAudio: false)
     static let infiniteLifeSutra: Scripture = scriptureStub(id: "infinite-life-sutra", title: "佛说无量寿经", shortTitle: "无量寿经", translator: "康僧铠", dynasty: "曹魏", category: "净土", durationMinutes: 80, hasAudio: false)
     static let contemplationSutra: Scripture = scriptureStub(id: "contemplation-sutra", title: "佛说观无量寿佛经", shortTitle: "观无量寿经", translator: "畺良耶舍", dynasty: "刘宋", category: "净土", durationMinutes: 45, hasAudio: false)
-    static let universalGate: Scripture = scriptureStub(id: "universal-gate", title: "妙法莲华经观世音菩萨普门品", shortTitle: "普门品", translator: "鸠摩罗什", dynasty: "姚秦", category: "观音", durationMinutes: 25, hasAudio: false)
+    static let universalGate: Scripture = loadScriptureResource(named: "universal-gate") ?? scriptureStub(id: "universal-gate", title: "妙法莲华经观世音菩萨普门品", shortTitle: "普门品", translator: "鸠摩罗什", dynasty: "姚秦", category: "观音", durationMinutes: 25, hasAudio: false)
 
     private static func scriptureStub(
         id: String,

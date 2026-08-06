@@ -183,6 +183,20 @@ final class AppModelDailyPracticeTests: XCTestCase {
         XCTAssertEqual(scripture?.chapters.last?.title, "应化非真分")
     }
 
+    func testUniversalGateUsesFullResourceContent() {
+        let appModel = AppModel(userDefaults: userDefaults)
+        let scripture = appModel.scripture(id: "universal-gate")
+
+        XCTAssertNotNil(scripture)
+        XCTAssertEqual(scripture?.source.contains("T09n0262"), true)
+        XCTAssertEqual(scripture?.isPrototypeContent, false)
+        XCTAssertEqual(scripture?.simplifiedParagraphs.count, 42)
+        XCTAssertEqual(scripture?.traditionalParagraphs.count, 42)
+        XCTAssertEqual(scripture?.chapters.count, 3)
+        XCTAssertEqual(scripture?.chapters.first?.title, "长行")
+        XCTAssertEqual(scripture?.chapters.last?.title, "结尾")
+    }
+
     func testSearchScripturesFindsFullTextParagraphs() {
         let appModel = AppModel(userDefaults: userDefaults)
         let results = appModel.searchScriptures(matching: "应无所住")
