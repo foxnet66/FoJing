@@ -55,6 +55,9 @@ struct ScriptureLibraryView: View {
         ScrollView {
             VStack(alignment: .leading, spacing: 18) {
                 searchField
+                if trimmedQuery.isEmpty, !appModel.searchHistory.isEmpty {
+                    searchHistorySection
+                }
                 if trimmedQuery.isEmpty, !recentReadableScriptures.isEmpty {
                     recentReadingSection
                 }
@@ -78,12 +81,59 @@ struct ScriptureLibraryView: View {
                 .foregroundStyle(AppTheme.secondaryInk)
             TextField("搜索经名、译者、关键词", text: $query)
                 .textInputAutocapitalization(.never)
+                .submitLabel(.search)
+                .onSubmit {
+                    appModel.recordSearchQuery(trimmedQuery)
+                }
+            if !query.isEmpty {
+                Button {
+                    query = ""
+                } label: {
+                    Image(systemName: "xmark.circle.fill")
+                        .foregroundStyle(AppTheme.secondaryInk)
+                }
+                .buttonStyle(.plain)
+                .accessibilityLabel("清空搜索")
+            }
         }
         .padding(13)
         .background(AppTheme.surface, in: RoundedRectangle(cornerRadius: 8))
         .overlay {
             RoundedRectangle(cornerRadius: 8)
                 .stroke(AppTheme.separator, lineWidth: 1)
+        }
+    }
+
+    private var searchHistorySection: some View {
+        VStack(alignment: .leading, spacing: 10) {
+            HStack {
+                Text("最近搜索")
+                    .font(.headline)
+                Spacer()
+                Button("清空") {
+                    appModel.clearSearchHistory()
+                }
+                .font(.caption.weight(.medium))
+                .foregroundStyle(AppTheme.secondaryInk)
+            }
+
+            ScrollView(.horizontal, showsIndicators: false) {
+                HStack(spacing: 10) {
+                    ForEach(appModel.searchHistory, id: \.self) { term in
+                        Button {
+                            query = term
+                        } label: {
+                            Label(term, systemImage: "clock")
+                                .font(.caption.weight(.medium))
+                                .padding(.horizontal, 12)
+                                .padding(.vertical, 8)
+                                .foregroundStyle(AppTheme.bamboo)
+                                .background(AppTheme.surfaceSubtle, in: Capsule())
+                        }
+                        .buttonStyle(.plain)
+                    }
+                }
+            }
         }
     }
 
@@ -257,19 +307,27 @@ struct ScriptureLibraryView: View {
                     }
                 }
                 .buttonStyle(.plain)
+                .simultaneousGesture(TapGesture().onEnded {
+                    appModel.recordSearchQuery(trimmedQuery)
+                })
             }
 
             if searchResults.isEmpty {
-                VStack(spacing: 10) {
+                VStack(spacing: 12) {
                     Image(systemName: "magnifyingglass")
                         .font(.title2)
                         .foregroundStyle(AppTheme.secondaryInk)
                     Text("没有找到匹配的经文内容")
                         .font(.subheadline)
+                        .foregroundStyle(AppTheme.ink)
+                    Text("可以换一个关键词，或搜索经名、译者、常见句子，例如“观世音”“应无所住”。")
+                        .font(.caption)
+                        .multilineTextAlignment(.center)
                         .foregroundStyle(AppTheme.secondaryInk)
                 }
                 .frame(maxWidth: .infinity)
-                .padding(.vertical, 28)
+                .padding(.horizontal, 20)
+                .padding(.vertical, 30)
             }
         }
     }

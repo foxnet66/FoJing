@@ -184,6 +184,7 @@ final class AppModel {
     var bookmarkedScriptureIDs: Set<String> = []
     var paragraphBookmarks: [ParagraphBookmark] = []
     var readingProgress: [String: Int] = [:]
+    var searchHistory: [String] = []
     var recentScriptureID: String?
     var dedicationRecords: [DedicationRecord] = []
     var dailyPracticeRecords: [DailyPracticeRecord] = []
@@ -321,6 +322,25 @@ final class AppModel {
         }
 
         return results
+    }
+
+    func recordSearchQuery(_ rawQuery: String) {
+        let query = rawQuery.trimmingCharacters(in: .whitespacesAndNewlines)
+        guard !query.isEmpty else { return }
+
+        let normalizedQuery = Self.normalizedSearchText(query)
+        var history = searchHistory.filter {
+            Self.normalizedSearchText($0) != normalizedQuery
+        }
+        history.insert(query, at: 0)
+        searchHistory = Array(history.prefix(8))
+        save()
+    }
+
+    func clearSearchHistory() {
+        guard !searchHistory.isEmpty else { return }
+        searchHistory = []
+        save()
     }
 
     func isBookmarked(_ scripture: Scripture) -> Bool {
@@ -494,6 +514,7 @@ final class AppModel {
             bookmarkedScriptureIDs = Set(state.bookmarkedScriptureIDs)
             paragraphBookmarks = state.paragraphBookmarks ?? []
             readingProgress = state.readingProgress
+            searchHistory = state.searchHistory ?? []
             recentScriptureID = state.recentScriptureID
             dedicationRecords = state.dedicationRecords
             dailyPracticeRecords = state.dailyPracticeRecords ?? []
@@ -516,6 +537,7 @@ final class AppModel {
             bookmarkedScriptureIDs: Array(bookmarkedScriptureIDs),
             paragraphBookmarks: paragraphBookmarks,
             readingProgress: readingProgress,
+            searchHistory: searchHistory,
             recentScriptureID: recentScriptureID,
             dedicationRecords: dedicationRecords,
             dailyPracticeRecords: dailyPracticeRecords,
@@ -647,6 +669,7 @@ private struct PersistedState: Codable {
     let bookmarkedScriptureIDs: [String]
     let paragraphBookmarks: [ParagraphBookmark]?
     let readingProgress: [String: Int]
+    let searchHistory: [String]?
     let recentScriptureID: String?
     let dedicationRecords: [DedicationRecord]
     let dailyPracticeRecords: [DailyPracticeRecord]?

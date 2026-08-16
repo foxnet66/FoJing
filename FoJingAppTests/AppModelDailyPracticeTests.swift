@@ -197,6 +197,22 @@ final class AppModelDailyPracticeTests: XCTestCase {
         XCTAssertEqual(scripture?.chapters.last?.title, "结尾")
     }
 
+    func testReadingProgressPersistsAcrossLaunchesAndResetsToBeginning() {
+        let appModel = AppModel(userDefaults: userDefaults)
+        let scripture = ScriptureCatalog.diamondSutra
+
+        appModel.saveProgress(scripture: scripture, paragraphIndex: 36)
+
+        let relaunched = AppModel(userDefaults: userDefaults)
+        XCTAssertEqual(relaunched.readingProgress[scripture.id], 36)
+        XCTAssertEqual(relaunched.recentScriptureID, scripture.id)
+
+        relaunched.resetProgress(scripture: scripture)
+
+        let resetRelaunch = AppModel(userDefaults: userDefaults)
+        XCTAssertEqual(resetRelaunch.readingProgress[scripture.id], 0)
+    }
+
     func testSearchScripturesFindsFullTextParagraphs() {
         let appModel = AppModel(userDefaults: userDefaults)
         let results = appModel.searchScriptures(matching: "应无所住")
@@ -213,6 +229,34 @@ final class AppModelDailyPracticeTests: XCTestCase {
         let results = appModel.searchScriptures(matching: "待接入全文")
 
         XCTAssertTrue(results.allSatisfy { !$0.scripture.isPrototypeContent })
+    }
+
+    func testSearchHistoryPersistsDeduplicatesAndCanBeCleared() {
+        let appModel = AppModel(userDefaults: userDefaults)
+
+        appModel.recordSearchQuery("  观世音  ")
+        appModel.recordSearchQuery("应无所住")
+        appModel.recordSearchQuery("观 世 音")
+
+        let relaunched = AppModel(userDefaults: userDefaults)
+        XCTAssertEqual(relaunched.searchHistory, ["观 世 音", "应无所住"])
+
+        relaunched.clearSearchHistory()
+
+        let clearedRelaunch = AppModel(userDefaults: userDefaults)
+        XCTAssertTrue(clearedRelaunch.searchHistory.isEmpty)
+    }
+
+    func testSearchHistoryKeepsMostRecentEightQueries() {
+        let appModel = AppModel(userDefaults: userDefaults)
+
+        for index in 1...10 {
+            appModel.recordSearchQuery("关键词\(index)")
+        }
+
+        XCTAssertEqual(appModel.searchHistory.count, 8)
+        XCTAssertEqual(appModel.searchHistory.first, "关键词10")
+        XCTAssertEqual(appModel.searchHistory.last, "关键词3")
     }
 
     func testParagraphBookmarksPersistAndToggle() {
